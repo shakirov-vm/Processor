@@ -29,7 +29,7 @@ struct Proc
 
 void CPU(char* input)
 {
-	Proc CPU;
+	struct Proc CPU;
 
 	CPU.IP = 0;
 	CPU.registr = (double*)calloc(4, sizeof(double));
@@ -48,10 +48,26 @@ void CPU(char* input)
 	{
 		switch ((int)CPU.commands[CPU.IP])
 		{
+			case CMD_PUSH_R:
+			{
+				stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+				//printf("push in registr %.0lf number %.0lf\n", CPU.commands[CPU.IP + 1], CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+				CPU.IP = CPU.IP + 2;
+
+				break;
+			}
+			case CMD_POP_R:
+			{
+				CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] = stk.Pop();
+				//printf("pop in registr %.0lf number %.0ld\n", CPU.commands[CPU.IP + 1], CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+				CPU.IP = CPU.IP + 2;
+
+				break;
+			}
 			case CMD_PUSH: 
 			{
 				stk.Push(CPU.commands[CPU.IP + 1]);
-				printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
+				//printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
 				CPU.IP = CPU.IP + 2;
 				
 				break;
@@ -63,7 +79,7 @@ void CPU(char* input)
 				rax = stk.Pop();
 				rbx = stk.Pop();
 
-				printf("add %.0lf %.0lf\n", rax, rbx);
+				//printf("add %.0lf %.0lf\n", rax, rbx);
 
 				rax = rax + rbx;
 
@@ -81,6 +97,8 @@ void CPU(char* input)
 
 				stk.Push(rax);
 
+				stk.DUMP();
+
 				break;
 			}
 			case CMD_MUL:
@@ -90,7 +108,7 @@ void CPU(char* input)
 				rax = stk.Pop();
 				rbx = stk.Pop();
 
-				printf("mul %.0lf %.0lf\n", rax, rbx);
+				//printf("mul %.0lf %.0lf\n", rax, rbx);
 
 				rax = rax * rbx;
 
@@ -105,7 +123,7 @@ void CPU(char* input)
 				rax = stk.Pop();
 				rbx = stk.Pop();
 
-				printf("sub %.0lf %.0lf\n", rax, rbx);
+				//printf("sub %.0lf %.0lf\n", rax, rbx);
 
 				rax = rax - rbx;
 
@@ -120,7 +138,7 @@ void CPU(char* input)
 				rax = stk.Pop();
 				rbx = stk.Pop();
 
-				printf("div %.0lf %.0lf\n", rax, rbx);
+				//printf("div %.0lf %.0lf\n", rax, rbx);
 
 				rax = rax / rbx;
 
@@ -130,7 +148,7 @@ void CPU(char* input)
 			}
 			case CMD_JMP:
 			{
-				printf("JUMP\n\n");
+				//printf("JUMP\n\n");
 
 				CPU.IP = CPU.commands[CPU.IP + 1];
 

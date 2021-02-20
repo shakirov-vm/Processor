@@ -42,7 +42,7 @@ void FileEnter(char* input, char* output)
 																						//Проблема с последними словами (мусор после)
 	for (int i = 0; i < size_of_input; i++) 
 	{
-		if (assembliruemoe[i] == ' ')	
+		if (assembliruemoe[i] == ' ' || assembliruemoe[i] == '\n')	
 		{
 			lines[count_lines] = assembliruemoe + i + 1;
 			count_lines++;
@@ -51,16 +51,52 @@ void FileEnter(char* input, char* output)
 	}
 
 	size_t count_command = 0;															//Нужен ли?
+	char* ptr;
 
 	for (int i = 0; i < count_lines; i++)
 	{
 		if (strcmp(lines[i], "push") == 0)
 		{
-			command[count_command] = CMD_PUSH;
+			double argument = strtod(lines[i + 1], &ptr);
 			count_command++;
 			i++;
-			double argument = atof(lines[i]);
-			command[count_command] = argument;
+
+			if (*ptr == '\0')
+			{
+				command[count_command - 1] = CMD_PUSH;
+				command[count_command] = argument;
+			}
+
+			else
+			{
+				command[count_command - 1] = CMD_PUSH_R;
+				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
+				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
+				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
+				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+			}
+			count_command++;
+		}
+		if (strcmp(lines[i], "pop") == 0)
+		{
+			double argument = strtod(lines[i + 1], &ptr);
+			count_command++;
+			i++;
+
+			if (*ptr == '\0')
+			{
+				command[count_command - 1] = CMD_POP;
+				command[count_command] = argument;
+			}
+
+			else
+			{
+				command[count_command - 1] = CMD_POP_R;
+				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
+				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
+				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
+				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+			}
 			count_command++;
 		}
 		if (strcmp(lines[i], "add") == 0)
@@ -76,11 +112,6 @@ void FileEnter(char* input, char* output)
 		if (strcmp(lines[i], "sub") == 0)
 		{
 			command[count_command] = CMD_SUB;
-			count_command++;
-		}
-		if (strcmp(lines[i], "pop") == 0)
-		{
-			command[count_command] = CMD_POP;
 			count_command++;
 		}
 		if (strcmp(lines[i], "div") == 0)

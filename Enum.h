@@ -1,7 +1,9 @@
-
+//  <<ÐÓÑÑÊÈÉ ÊÎÌÌÅÍÒÀÐÈÉ>>
 enum COMMANDS
 {
 	CMD_PUSH = 1,
+	CMD_PUSH_R = 11,
+	CMD_POP_R = 12,
 	CMD_POP  = 2,
 	CMD_ADD  = 3,
 	CMD_SUB  = 4,
@@ -10,4 +12,12 @@ enum COMMANDS
 	CMD_OUT  = 7,
 	CMD_END  = 10,
 	CMD_JMP  = 8
+};
+
+enum REGISTERS
+{
+	CMD_RAX = 111,
+	CMD_RBX = 112,
+	CMD_RCX = 113,
+	CMD_RDX = 114
 };
