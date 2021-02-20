@@ -39,7 +39,7 @@ void FileEnter(char* input, char* output)
 	lines[0] = assembliruemoe;
 
 	size_t count_lines = 1;
-
+																						//Проблема с последними словами (мусор после)
 	for (int i = 0; i < size_of_input; i++) 
 	{
 		if (assembliruemoe[i] == ' ')	
@@ -50,7 +50,7 @@ void FileEnter(char* input, char* output)
 		}
 	}
 
-	size_t count_command = 0;
+	size_t count_command = 0;															//Нужен ли?
 
 	for (int i = 0; i < count_lines; i++)
 	{
@@ -98,7 +98,16 @@ void FileEnter(char* input, char* output)
 			command[count_command] = CMD_END;
 			count_command++;
 		}
-		
+		if (strcmp(lines[i], "jmp") == 0)
+		{
+			printf("!!!!!\n\n");
+			command[count_command] = CMD_JMP;
+			count_command++;
+			i++;
+			double argument = atof(lines[i]);
+			command[count_command] = argument;
+			count_command++;
+		}
 	}
 
 	potok = fopen(output, "wb");
@@ -112,16 +121,16 @@ void FileEnter(char* input, char* output)
 		perror(answer);
 		exit(2);
 	}
-
-	for (int i = 0; i < 18; i++)
+	printf("<<< %d %d\n", count_command, count_lines);
+	for (int i = 0; i < count_command; i++)
 	{
-		printf("%d ", command[i]);
+		printf("%.0lf ", command[i]);
 	}
 	printf("\n");
 
-	int true_fwrite = fwrite(command, sizeof(double), count_command, potok);
+	int entered = fwrite(command, sizeof(double), count_command, potok);
 
-	printf(">>>%d\n", true_fwrite);
+	printf(">>> %d\n", entered);
 
 	fclose(potok);
 

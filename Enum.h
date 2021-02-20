@@ -8,5 +8,6 @@ enum COMMANDS
 	CMD_MUL  = 5,
 	CMD_DIV  = 6,
 	CMD_OUT  = 7,
-	CMD_END  = 0
+	CMD_END  = 10,
+	CMD_JMP  = 8
 };

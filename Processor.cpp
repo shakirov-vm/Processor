@@ -1,83 +1,174 @@
-﻿
+﻿#include <ctype.h>
+#include <sys\types.h>
+#include <sys\stat.h>
 #include "Enum.h"
 
 #ifndef  _STACK_H
 #define _STACK_H
 
-#define TYPE int
+#define TYPE double
 #include "Stack.h"
 #undef TYPE
 
 #endif
 
+#define rax CPU.registr[0]
+#define rbx CPU.registr[1]
+#define rcx CPU.registr[2]
+#define rdx CPU.registr[3]
+
+unsigned long KnowSizeInput(char* input);
+int CommandFiller(struct Proc CPU, char* input, int size_of_input);
+
+struct Proc
+{
+	double* commands;
+	int IP;
+	double* registr;
+};
+
 void CPU(char* input)
 {
-	struct stat buff;
-	stat(input, &buff);
+	Proc CPU;
 
-	unsigned long size_of_input = buff.st_size;
+	CPU.IP = 0;
+	CPU.registr = (double*)calloc(4, sizeof(double));
 
-	size_of_input = size_of_input;
+	unsigned long size_of_input = KnowSizeInput(input);
 
-	double* commands = (double*)calloc(size_of_input, sizeof(double));
+	CPU.commands = (double*)calloc(size_of_input, sizeof(double));
 
-	FILE* potok = fopen(input, "rb");
 
-	int true_fread = fread(commands, sizeof(double), size_of_input, potok);
+	int read_out = CommandFiller(CPU, input, size_of_input);
 
-	printf(">>>>> %d\n\n", true_fread);
-
-	for (int i = 0; i < 9; i++)
+	Stack_double stk;
+	stk.DUMP();
+	
+	for (int i = 0; /*i < size_of_input*/; i++)
 	{
-		printf("%lf ", commands[i]);
-	}
-	printf("\n");
-
-	fclose(potok);
-
-	int IP = 0;
-
-	Stack_int stk;
-
-	for (int i = 0; i < size_of_input; i++)
-	{
-		switch ((int)commands[IP])
+		switch ((int)CPU.commands[CPU.IP])
 		{
 			case CMD_PUSH: 
 			{
-				stk.Push(commands[IP + 1]);
-				IP = IP + 2;
+				stk.Push(CPU.commands[CPU.IP + 1]);
+				printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
+				CPU.IP = CPU.IP + 2;
 				
 				break;
 			}
 			case CMD_ADD:
 			{
-				IP++;
+				CPU.IP++;
 
-				int a = stk.Pop();
-				int b = stk.Pop();
+				rax = stk.Pop();
+				rbx = stk.Pop();
 
-				printf(">>>>>>>>>> %d %d\n", a, b);
+				printf("add %.0lf %.0lf\n", rax, rbx);
 
-				int c = a + b;
+				rax = rax + rbx;
 
-				stk.Push(c);
+				stk.Push(rax);
 
 				break;
 			}
 			case CMD_OUT:
 			{
-				IP++;
+				CPU.IP++;
 
-				int a = stk.Pop();
+				rax = stk.Pop();
 
-				printf("%d ", a);
+				printf("out %.0lf\n", rax);
 
-				stk.Push(a);
+				stk.Push(rax);
 
 				break;
+			}
+			case CMD_MUL:
+			{
+				CPU.IP++;
+
+				rax = stk.Pop();
+				rbx = stk.Pop();
+
+				printf("mul %.0lf %.0lf\n", rax, rbx);
+
+				rax = rax * rbx;
+
+				stk.Push(rax);
+
+				break;
+			}
+			case CMD_SUB:
+			{
+				CPU.IP++;
+
+				rax = stk.Pop();
+				rbx = stk.Pop();
+
+				printf("sub %.0lf %.0lf\n", rax, rbx);
+
+				rax = rax - rbx;
+
+				stk.Push(rax);
+
+				break;
+			}
+			case CMD_DIV:
+			{
+				CPU.IP++;
+
+				rax = stk.Pop();
+				rbx = stk.Pop();
+
+				printf("div %.0lf %.0lf\n", rax, rbx);
+
+				rax = rax / rbx;
+
+				stk.Push(rax);
+
+				break;
+			}
+			case CMD_JMP:
+			{
+				printf("JUMP\n\n");
+
+				CPU.IP = CPU.commands[CPU.IP + 1];
+
+				break;
+			}
+			case CMD_END:
+			{
+				stk.DUMP();
+
+				return;
 			}
 		}
 	}
 }
 
+unsigned long KnowSizeInput(char* input)
+{
+	struct stat buff;
+	stat(input, &buff);
+	return buff.st_size;
+}
+
+int CommandFiller(struct Proc CPU, char* input, int size_of_input)
+{
+	FILE* potok = fopen(input, "rb");
+
+	int read_out = fread(CPU.commands, sizeof(double), size_of_input, potok);
+
+	printf(">>> %d - readed\n\n", read_out);
+
+	for (int i = 0; i <= read_out; i++)
+	{
+		printf("%.0lf ", CPU.commands[i]);
+	}
+	printf("\n");
+
+	fclose(potok);
+
+	return read_out;
+}
+ 
