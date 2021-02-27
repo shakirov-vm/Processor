@@ -7,6 +7,8 @@
 
 #include "Enum.h"
 
+int strcmp_my(char* line, char* tag);
+
 void FileEnter(char* input, char* output)
 {
 	struct stat buff;
@@ -53,7 +55,13 @@ void FileEnter(char* input, char* output)
 	size_t count_command = 0;															//Íóæåí ëè?
 	char* ptr;
 
-	for (int i = 0; i < count_lines; i++)
+	char** tags = (char**)calloc(count_lines, sizeof(char*));
+	size_t count_tags = 0;
+	int* place = (int*)calloc(count_lines, sizeof(int));
+
+
+
+	for (int i = 0; i < count_lines; i++) // continue â êîíöå êàæäîãî if
 	{
 		if (strcmp(lines[i], "push") == 0)
 		{
@@ -131,15 +139,135 @@ void FileEnter(char* input, char* output)
 		}
 		if (strcmp(lines[i], "jmp") == 0)
 		{
-			printf("!!!!!\n\n");
+			/*
 			command[count_command] = CMD_JMP;
 			count_command++;
 			i++;
-			double argument = atof(lines[i]);
+
+			for (int j = 0; j <= count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[count_tags]) == 0)
+				{
+					printf("%s\n", tags[count_tags]);
+				}
+			}
+			*/
+			count_command = count_command + 2;
+			/*double argument = atof(lines[i]);
 			command[count_command] = argument;
-			count_command++;
+			count_command++;*/
+		}
+		if (i != count_lines - 1)
+		{
+			if ((lines[i + 1][-2] == ':'))
+			{
+				tags[count_tags] = lines[i];
+				place[count_tags] = count_command;    //                               ÊÀÊ ÑÒÎÈÒ ĞÅÀËÈÇÎÂÀÒÜ??
+				count_tags++;
+			}
 		}
 	}
+
+	count_command = 0;                                                              //         COPYPASTE
+
+	for (int i = 0; i < count_lines; i++) // continue â êîíöå êàæäîãî if
+	{
+		if (strcmp(lines[i], "push") == 0)
+		{
+			double argument = strtod(lines[i + 1], &ptr);
+			count_command++;
+			i++;
+
+			if (*ptr == '\0')
+			{
+				command[count_command - 1] = CMD_PUSH;
+				command[count_command] = argument;
+			}
+
+			else
+			{
+				command[count_command - 1] = CMD_PUSH_R;
+				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
+				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
+				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
+				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+			}
+			count_command++;
+		}
+		if (strcmp(lines[i], "pop") == 0)
+		{
+			double argument = strtod(lines[i + 1], &ptr);
+			count_command++;
+			i++;
+
+			if (*ptr == '\0')
+			{
+				command[count_command - 1] = CMD_POP;
+				command[count_command] = argument;
+			}
+
+			else
+			{
+				command[count_command - 1] = CMD_POP_R;
+				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
+				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
+				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
+				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+			}
+			count_command++;
+		}
+		if (strcmp(lines[i], "add") == 0)
+		{
+			command[count_command] = CMD_ADD;
+			count_command++;
+		}
+		if (strcmp(lines[i], "mul") == 0)
+		{
+			command[count_command] = CMD_MUL;
+			count_command++;
+		}
+		if (strcmp(lines[i], "sub") == 0)
+		{
+			command[count_command] = CMD_SUB;
+			count_command++;
+		}
+		if (strcmp(lines[i], "div") == 0)
+		{
+			command[count_command] = CMD_DIV;
+			count_command++;
+		}
+		if (strcmp(lines[i], "out") == 0)
+		{
+			command[count_command] = CMD_OUT;
+			count_command++;
+		}
+		if (strcmp(lines[i], "end") == 0)
+		{
+			command[count_command] = CMD_END;
+			count_command++;
+		}
+		if (strcmp(lines[i], "jmp") == 0)
+		{
+			command[count_command] = CMD_JMP;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+			
+			/*double argument = atof(lines[i]);
+			command[count_command] = argument;
+			count_command++;*/
+		}
+	}
+
 
 	potok = fopen(output, "wb");
 
@@ -168,4 +296,17 @@ void FileEnter(char* input, char* output)
 	free(assembliruemoe);
 	free(lines);
 	free(command);
+}
+
+int strcmp_my(char* line, char* tag)
+{
+	int differ = 0;
+
+	for (int i = 0; tag[i] != ':'; i++)
+	{
+		differ = line[i] - tag[i];
+
+		if (differ != 0) return differ;
+	}
+	return 0;
 }

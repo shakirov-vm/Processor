@@ -95,7 +95,7 @@ void CPU(char* input)
 
 				printf("out %.0lf\n", rax);
 
-				stk.Push(rax);
+				//stk.Push(rax);                                    КАК ЭТО СТОИТ РЕАЛИЗОВАТЬ??          
 
 				stk.DUMP();
 
