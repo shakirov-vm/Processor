@@ -12,10 +12,14 @@
 
 #endif
 
+int NUM_OF_REG = 6;
+
 #define rax CPU.registr[0]
 #define rbx CPU.registr[1]
 #define rcx CPU.registr[2]
 #define rdx CPU.registr[3]
+#define rsi CPU.registr[4]
+#define rpi CPU.registr[5]
 
 unsigned long KnowSizeInput(char* input);
 int CommandFiller(struct Proc CPU, char* input, int size_of_input);
@@ -32,7 +36,7 @@ void CPU(char* input)
 	struct Proc CPU;
 
 	CPU.IP = 0;
-	CPU.registr = (double*)calloc(4, sizeof(double));
+	CPU.registr = (double*)calloc(NUM_OF_REG, sizeof(double));
 
 	unsigned long size_of_input = KnowSizeInput(input);
 
@@ -42,6 +46,7 @@ void CPU(char* input)
 	int read_out = CommandFiller(CPU, input, size_of_input);
 
 	Stack_double stk;
+	Stack_double reg_ret;
 	stk.DUMP();
 	
 	for (int i = 0; /*i < size_of_input*/; i++)
@@ -53,6 +58,9 @@ void CPU(char* input)
 				stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
 				//printf("push in registr %.0lf number %.0lf\n", CPU.commands[CPU.IP + 1], CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
 				CPU.IP = CPU.IP + 2;
+
+				stk.DUMP();
+				reg_ret.DUMP();
 
 				break;
 			}
@@ -97,7 +105,7 @@ void CPU(char* input)
 
 				//stk.Push(rax);                                    КАК ЭТО СТОИТ РЕАЛИЗОВАТЬ??          
 
-				stk.DUMP();
+				//stk.DUMP();
 
 				break;
 			}
@@ -113,7 +121,6 @@ void CPU(char* input)
 				rax = rax * rbx;
 
 				stk.Push(rax);
-
 				break;
 			}
 			case CMD_SUB:
@@ -146,12 +153,64 @@ void CPU(char* input)
 
 				break;
 			}
-			case CMD_JMP:
+			case CMD_CALL:
 			{
-				//printf("JUMP\n\n");
+				reg_ret.Push(CPU.IP); //                              ?????????????
 
 				CPU.IP = CPU.commands[CPU.IP + 1];
 
+				//stk.DUMP();
+				reg_ret.DUMP();
+
+				break;
+			}
+			case CMD_RET:
+			{
+				CPU.IP = reg_ret.Pop();
+				CPU.IP = CPU.IP + 2;
+				reg_ret.DUMP();
+				break;
+			}
+			case CMD_JMP:
+			{
+				CPU.IP = CPU.commands[CPU.IP + 1];
+
+				break;
+			}
+			case CMD_JB:
+			{
+				if (rbx < rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
+				else CPU.IP = CPU.IP + 2;
+				break;
+			}
+			case CMD_JBE:
+			{
+				if (rbx <= rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
+				else CPU.IP = CPU.IP + 2;
+				break;
+			}
+			case CMD_JA:
+			{
+				if (rbx > rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
+				else CPU.IP = CPU.IP + 2;
+				break;
+			}
+			case CMD_JAE:
+			{
+				if (rbx >= rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
+				else CPU.IP = CPU.IP + 2;
+				break;
+			}
+			case CMD_JE:
+			{
+				if (rbx == rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
+				else CPU.IP = CPU.IP + 2;
+				break;
+			}
+			case CMD_JNE:
+			{
+				if (rbx != rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
+				else CPU.IP = CPU.IP + 2;
 				break;
 			}
 			case CMD_END:
@@ -175,6 +234,16 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 {
 	FILE* potok = fopen(input, "rb");
 
+	if (errno)
+	{
+		char answer[100];
+
+		sprintf(answer, "Processor: Problem file: %s\n", input);
+
+		perror(answer);
+		exit(1);
+	}
+
 	int read_out = fread(CPU.commands, sizeof(double), size_of_input, potok);
 
 	printf(">>> %d - readed\n\n", read_out);
@@ -184,7 +253,7 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 		printf("%.0lf ", CPU.commands[i]);
 	}
 	printf("\n");
-
+	
 	fclose(potok);
 
 	return read_out;

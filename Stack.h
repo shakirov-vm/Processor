@@ -17,7 +17,8 @@ enum STACK_ERROR
 	STACK_NPTR = 5,
 	STACK_OVER = 6,
 	STACK_HASH = 7,
-	STACK_UNOP = 8
+	STACK_UNOP = 8,
+	STACK_EMPT = 9
 };
 
 typedef int canary_t;
@@ -74,13 +75,20 @@ void TEMPLATE(Stack, TYPE)::OK()
 	{
 		char answer[100];
 
-		sprintf(answer, "Problem file: %s\n", "log.txt");
+		sprintf(answer, "LOG: Problem file: %s\n", "log.txt");
 
 		perror(answer);
 		exit(STACK_UNOP);
 	}
 
 	int error = 0;
+
+	if (size < 0)
+	{
+		error = STACK_EMPT;
+		printf("!! EMPTY !!\n");
+		fprintf(potok, "ERRORS Code - <%d>", STACK_EMPT);
+	}
 
 	if (size > capacity)
 	{
@@ -198,7 +206,7 @@ void TEMPLATE(Stack, TYPE)::DUMP()
 	{
 		char answer[100];
 
-		sprintf(answer, "Problem file: %s\n", "log.txt");
+		sprintf(answer, "LOGS: Problem file: %s\n", "log.txt");
 
 		perror(answer);
 		exit(STACK_UNOP);

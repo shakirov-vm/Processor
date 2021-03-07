@@ -7,9 +7,12 @@
 
 #include "Enum.h"
 
+// Для условных джампов числа для сравнения должны лежать в регистрах rbx и rcx
+// Условные джампы срабатывают тогда, когда условие выполнено (т.е. je сработает, если rbx = rcx)
+
 int strcmp_my(char* line, char* tag);
 
-void FileEnter(char* input, char* output)
+void Assembler(char* input, char* output)
 {
 	struct stat buff;
 	stat(input, &buff);
@@ -24,7 +27,7 @@ void FileEnter(char* input, char* output)
 	{
 		char answer[100];
 
-		sprintf(answer, "Problem file: %s\n", input);
+		sprintf(answer, "Assembler: Problem file: %s\n", input);
 
 		perror(answer);
 		exit(1);
@@ -63,99 +66,54 @@ void FileEnter(char* input, char* output)
 
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
-		if (strcmp(lines[i], "push") == 0)
+		if (strcmp(lines[i], "push") == 0) {count_command = count_command + 2; i++;}
+		if (strcmp(lines[i], "pop") == 0)  {count_command = count_command + 2; i++;}
+		if (strcmp(lines[i], "add") == 0)	count_command++;
+		if (strcmp(lines[i], "mul") == 0)	count_command++;
+		if (strcmp(lines[i], "sub") == 0)	count_command++;
+		if (strcmp(lines[i], "div") == 0)	count_command++;
+		if (strcmp(lines[i], "out") == 0)	count_command++;
+		if (strcmp(lines[i], "end") == 0)	count_command++;
+		if (strcmp(lines[i], "ret") == 0)	count_command++;
+		if (strcmp(lines[i], "call") == 0)
 		{
-			double argument = strtod(lines[i + 1], &ptr);
-			count_command++;
-			i++;
-
-			if (*ptr == '\0')
-			{
-				command[count_command - 1] = CMD_PUSH;
-				command[count_command] = argument;
-			}
-
-			else
-			{
-				command[count_command - 1] = CMD_PUSH_R;
-				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
-				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
-				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
-				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
-			}
-			count_command++;
-		}
-		if (strcmp(lines[i], "pop") == 0)
-		{
-			double argument = strtod(lines[i + 1], &ptr);
-			count_command++;
-			i++;
-
-			if (*ptr == '\0')
-			{
-				command[count_command - 1] = CMD_POP;
-				command[count_command] = argument;
-			}
-
-			else
-			{
-				command[count_command - 1] = CMD_POP_R;
-				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
-				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
-				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
-				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
-			}
-			count_command++;
-		}
-		if (strcmp(lines[i], "add") == 0)
-		{
-			command[count_command] = CMD_ADD;
-			count_command++;
-		}
-		if (strcmp(lines[i], "mul") == 0)
-		{
-			command[count_command] = CMD_MUL;
-			count_command++;
-		}
-		if (strcmp(lines[i], "sub") == 0)
-		{
-			command[count_command] = CMD_SUB;
-			count_command++;
-		}
-		if (strcmp(lines[i], "div") == 0)
-		{
-			command[count_command] = CMD_DIV;
-			count_command++;
-		}
-		if (strcmp(lines[i], "out") == 0)
-		{
-			command[count_command] = CMD_OUT;
-			count_command++;
-		}
-		if (strcmp(lines[i], "end") == 0)
-		{
-			command[count_command] = CMD_END;
-			count_command++;
+			count_command = count_command + 2;
+			continue;
 		}
 		if (strcmp(lines[i], "jmp") == 0)
 		{
-			/*
-			command[count_command] = CMD_JMP;
-			count_command++;
-			i++;
-
-			for (int j = 0; j <= count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[count_tags]) == 0)
-				{
-					printf("%s\n", tags[count_tags]);
-				}
-			}
-			*/
 			count_command = count_command + 2;
-			/*double argument = atof(lines[i]);
-			command[count_command] = argument;
-			count_command++;*/
+			continue;
+		}
+		if (strcmp(lines[i], "jb") == 0)
+		{
+			count_command = count_command + 2;
+			continue;
+		}
+		if (strcmp(lines[i], "jbe") == 0)
+		{
+			count_command = count_command + 2;
+			continue;
+		}
+		if (strcmp(lines[i], "ja") == 0)
+		{
+			count_command = count_command + 2;
+			continue;
+		}
+		if (strcmp(lines[i], "jae") == 0)
+		{
+			count_command = count_command + 2;
+			continue;
+		}
+		if (strcmp(lines[i], "je") == 0)
+		{
+			count_command = count_command + 2;
+			continue;
+		}
+		if (strcmp(lines[i], "jne") == 0)
+		{
+			count_command = count_command + 2;
+			continue;
 		}
 		if (i != count_lines - 1)
 		{
@@ -167,9 +125,9 @@ void FileEnter(char* input, char* output)
 			}
 		}
 	}
-
+//=========================================================================================================================================
 	count_command = 0;                                                              //         COPYPASTE
-
+//=========================================================================================================================================
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
 		if (strcmp(lines[i], "push") == 0)
@@ -191,6 +149,8 @@ void FileEnter(char* input, char* output)
 				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
 				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
 				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+				if (*(ptr + 1) == 's') command[count_command] = CMD_RSI;
+				if (*(ptr + 1) == 'p') command[count_command] = CMD_RPI;
 			}
 			count_command++;
 		}
@@ -246,6 +206,11 @@ void FileEnter(char* input, char* output)
 			command[count_command] = CMD_END;
 			count_command++;
 		}
+		if (strcmp(lines[i], "ret") == 0)
+		{
+			command[count_command] = CMD_RET;
+			count_command++;
+		}
 		if (strcmp(lines[i], "jmp") == 0)
 		{
 			command[count_command] = CMD_JMP;
@@ -261,10 +226,118 @@ void FileEnter(char* input, char* output)
 					break;
 				}
 			}
-			
-			/*double argument = atof(lines[i]);
-			command[count_command] = argument;
-			count_command++;*/
+		}
+		if (strcmp(lines[i], "call") == 0)
+		{
+			command[count_command] = CMD_CALL;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+		}
+		if (strcmp(lines[i], "jb") == 0)
+		{
+			command[count_command] = CMD_JB;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+		}
+		if (strcmp(lines[i], "jbe") == 0)
+		{
+			command[count_command] = CMD_JBE;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+		}
+		if (strcmp(lines[i], "ja") == 0)
+		{
+			command[count_command] = CMD_JA;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+		}
+		if (strcmp(lines[i], "jae") == 0)
+		{
+			command[count_command] = CMD_JAE;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+		}
+		if (strcmp(lines[i], "je") == 0)
+		{
+			command[count_command] = CMD_JE;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
+		}
+		if (strcmp(lines[i], "jne") == 0)
+		{
+			command[count_command] = CMD_JNE;
+			count_command++;
+			i++;
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; //                                                    ???
+					break;
+				}
+			}
 		}
 	}
 
@@ -275,7 +348,7 @@ void FileEnter(char* input, char* output)
 	{
 		char answer[100];
 
-		sprintf(answer, "Problem file: %s\n", output);
+		sprintf(answer, "Assembler: Problem file: %s\n", output);
 
 		perror(answer);
 		exit(2);
@@ -289,7 +362,7 @@ void FileEnter(char* input, char* output)
 
 	int entered = fwrite(command, sizeof(double), count_command, potok);
 
-	printf(">>> %d\n", entered);
+	//printf(">>> %d\n", entered);
 
 	fclose(potok);
 
