@@ -11,6 +11,8 @@
 
 // Для условных джампов числа для сравнения должны лежать в регистрах rbx и rcx
 // Условные джампы срабатывают тогда, когда условие выполнено (т.е. je сработает, если rbx = rcx)
+// НУЖНО СТАВИТЬ РОВНО ОДИН РАЗДЕЛИТЕЛЬ МЕЖДУ PUSH И АРГУМЕНТОМ. ЕСЛИ ЭТО НЕ ТАК - UNKNOWN COMMAND. Если неверно написано имя регистра
+// - то выдаст ошибку неверного названия регистра.
 
 void Assembler(char* input, char* output)      // line is word, string is string
 {
@@ -100,8 +102,7 @@ void Assembler(char* input, char* output)      // line is word, string is string
 
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
-		printf("%d - [%s]\n", count_command, lines[i]);
-		if (strings[count_strings] < lines[i]) count_strings++;
+		//printf("%d - [%s]\n", count_command, lines[i]);
 
 		if (strcmp(lines[i], "push") == 0)
 		{
@@ -118,21 +119,28 @@ void Assembler(char* input, char* output)      // line is word, string is string
 			else if (*(ptr) == 'r')
 			{
 				command[count_command - 1] = CMD_PUSH_R;
-				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
-				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
-				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
-				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
-				if (*(ptr + 1) == 's') command[count_command] = CMD_RSI;
-				if (*(ptr + 1) == 'p') command[count_command] = CMD_RPI;
+					 if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
+				else if ((*(ptr + 1) == 'b') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RBX;
+				else if ((*(ptr + 1) == 'c') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RCX;
+				else if ((*(ptr + 1) == 'd') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RDX;
+				else if ((*(ptr + 1) == 's') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RSI;
+				else if ((*(ptr + 1) == 'p') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RPI;
+				else
+				{
+					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+					num_errors++;
+				}
 			}
 			else if (*(ptr) == '[')  // Это для оперативки и видеопамяти
 			{
-
+				printf("FIND\n");
 			}
 			else
 			{
 				num_errors++;
-				printf("Invalid push argument %d\n", count_strings + 1);
+				printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
+
+				count_command--;
 			}
 			count_command++;
 		}
@@ -148,16 +156,34 @@ void Assembler(char* input, char* output)      // line is word, string is string
 				command[count_command] = argument;
 			}
 
-			else
+			else if (*(ptr) == 'r')
 			{
 				command[count_command - 1] = CMD_POP_R;
-				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
-				if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
-				if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
-				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+					 if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
+				else if ((*(ptr + 1) == 'b') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RBX;
+				else if ((*(ptr + 1) == 'c') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RCX;
+				else if ((*(ptr + 1) == 'd') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RDX;
+				else if ((*(ptr + 1) == 's') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RSI;
+				else if ((*(ptr + 1) == 'p') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RPI;
+				else
+				{
+					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+					num_errors++;
+				}
+			}
+			else if (*(ptr) == '[')  // Это для оперативки и видеопамяти
+			{
+				printf("FIND\n");
+			}
+			else
+			{
+				num_errors++;
+				printf("Invalid pop argument %d - %s\n", count_strings + 1, lines[i]);
+
+				count_command--;
 			}
 			count_command++;
-		}		
+		}
 		ARIFMETICAL("add", ADD)
 		ARIFMETICAL("mul", MUL)
 		ARIFMETICAL("sub", SUB)
@@ -171,8 +197,32 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		JUMPS("jbe", JBE)
 		JUMPS("ja", JA)
 		JUMPS("jae", JAE)
-		JUMPS("je", JE)
-		JUMPS("jne", JNE)
+		JUMPS("je", JE)      //            Хочется define
+		else if (strcmp(lines[i], "jne") == 0)																\
+		{																									\
+			command[count_command] = CMD_JNE;																\
+			count_command++;																				\
+			i++;																							\
+																											\
+			int find = 0;																					\
+																											\
+			for (int j = 0; j < count_tags; j++)															\
+			{																								\
+				if (strcmp_my(lines[i], tags[j]) == 0)														\
+				{																							\
+					command[count_command] = place[j];														\
+					count_command++;																		\
+					find++;																					\
+																											\
+					break;																						
+				}																							\
+			}																								\
+			if (find == 0)																					\
+			{																								\
+				printf("This tag - <%s> - is unknown. Error. Line is %d\n", lines[i], count_strings + 1);	\
+				num_errors++;																				\
+			}																								\
+		}	
 		else if (strcmp(lines[i], "") == 0);         // Do nothing
 		else if ((lines[i + 1][-2] == ':'));
 		else 
@@ -184,6 +234,7 @@ void Assembler(char* input, char* output)      // line is word, string is string
 				// Промахивается на строку, если строка начинается не с ошибочного слова, а с нормального (помечает следующую)
 			}
 		}
+		if (strings[count_strings] < lines[i]) count_strings++;
 	}
 
 	if (num_errors != 0)
@@ -194,6 +245,7 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		free(command);
 	}
 	assert(!num_errors);
+	// RETURN ERROR?
 
 	/*for (int i = 0; i < count_strings; i++)
 	{
