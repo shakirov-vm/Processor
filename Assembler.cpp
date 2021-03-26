@@ -4,117 +4,79 @@
 #include <sys/stat.h>
 #include <ctype.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "Enum.h"
+#include "Assembler.h"
 
 // Для условных джампов числа для сравнения должны лежать в регистрах rbx и rcx
 // Условные джампы срабатывают тогда, когда условие выполнено (т.е. je сработает, если rbx = rcx)
 
-int strcmp_my(char* line, char* tag);
-
-void Assembler(char* input, char* output)
+void Assembler(char* input, char* output)      // line is word, string is string
 {
-	struct stat buff;
-	stat(input, &buff);
-
-	unsigned long size_of_input = buff.st_size;
+	unsigned long size_of_input = KnowFileSize(input);
 
 	char* assembliruemoe = (char*)calloc(size_of_input, sizeof(char));
-
-	FILE* potok = fopen(input, "r+");
-
-	if (errno)
-	{
-		char answer[100];
-
-		sprintf(answer, "Assembler: Problem file: %s\n", input);
-
-		perror(answer);
-		exit(1);
-	}
-
-	fread(assembliruemoe, sizeof(char), size_of_input, potok);
-
-	fclose(potok);
-
-	double* command = (double*)calloc(size_of_input, sizeof(int));                            ///////
-
+	double* command = (double*)calloc(size_of_input, sizeof(int));
 	char** lines = (char**)calloc(size_of_input, sizeof(char*));
 
-	lines[0] = assembliruemoe;
+	FileReader(input, assembliruemoe, size_of_input);
 
+//=================================================================		
+	char** strings = (char**) calloc(size_of_input, sizeof(char*));
+	size_t count_strings = 1;
+	strings[0] = assembliruemoe;
+	for (int i = 0; i < size_of_input; i++)
+	{
+		if (assembliruemoe[i] == '\n')
+		{
+			strings[count_strings] = assembliruemoe + i + 1;
+			count_strings++;
+		}
+	}
+//==================================================================
+	//Проблема с последними словами (мусор после)    Is it EXIST?
+
+	lines[0] = assembliruemoe;    // Разбиения на, по сути, слова
 	size_t count_lines = 1;
-																						//Проблема с последними словами (мусор после)
+
 	for (int i = 0; i < size_of_input; i++) 
 	{
-		if (assembliruemoe[i] == ' ' || assembliruemoe[i] == '\n')	
+		if (isspace(assembliruemoe[i]))	
 		{
-			lines[count_lines] = assembliruemoe + i + 1;
+			lines[count_lines] = assembliruemoe + i + 1;                               //Вынести в функцию
 			count_lines++;
 			assembliruemoe[i] = '\0';
 		}
 	}
 
-	size_t count_command = 0;															//Нужен ли?
-	char* ptr;
+	size_t count_command = 0;															//Нужен ли? - да
 
 	char** tags = (char**)calloc(count_lines, sizeof(char*));
 	size_t count_tags = 0;
 	int* place = (int*)calloc(count_lines, sizeof(int));
 
-
+	size_t num_errors = 0;
 
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
-		if (strcmp(lines[i], "push") == 0) {count_command = count_command + 2; i++;}
-		if (strcmp(lines[i], "pop") == 0)  {count_command = count_command + 2; i++;}
-		if (strcmp(lines[i], "add") == 0)	count_command++;
-		if (strcmp(lines[i], "mul") == 0)	count_command++;
-		if (strcmp(lines[i], "sub") == 0)	count_command++;
-		if (strcmp(lines[i], "div") == 0)	count_command++;
-		if (strcmp(lines[i], "out") == 0)	count_command++;
-		if (strcmp(lines[i], "end") == 0)	count_command++;
-		if (strcmp(lines[i], "ret") == 0)	count_command++;
-		if (strcmp(lines[i], "call") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "jmp") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "jb") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "jbe") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "ja") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "jae") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "je") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
-		if (strcmp(lines[i], "jne") == 0)
-		{
-			count_command = count_command + 2;
-			continue;
-		}
+		COMMANDS("push", 2, 1)
+		COMMANDS("pop", 2, 1)
+		COMMANDS("add", 1, 0)
+		COMMANDS("mul", 1, 0)
+		COMMANDS("sub", 1, 0)
+		COMMANDS("div", 1, 0)
+		COMMANDS("out", 1, 0)
+		COMMANDS("end", 1, 0)
+		COMMANDS("ret", 1, 0)
+		COMMANDS("call", 2, 0)
+		COMMANDS("jmp", 2, 0)
+		COMMANDS("jb", 2, 0)
+		COMMANDS("jbe", 2, 0)
+		COMMANDS("ja", 2, 0)
+		COMMANDS("jae", 2, 0)
+		COMMANDS("je", 2, 0)
+		COMMANDS("jne", 2, 0)
 		if (i != count_lines - 1)
 		{
 			if ((lines[i + 1][-2] == ':'))
@@ -127,9 +89,14 @@ void Assembler(char* input, char* output)
 	}
 //=========================================================================================================================================
 	count_command = 0;                                                              //         COPYPASTE
+	count_strings = 0;
 //=========================================================================================================================================
+	char* ptr;
+
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
+		if (strings[count_strings] < lines[i]) count_strings++;
+
 		if (strcmp(lines[i], "push") == 0)
 		{
 			double argument = strtod(lines[i + 1], &ptr);
@@ -142,7 +109,7 @@ void Assembler(char* input, char* output)
 				command[count_command] = argument;
 			}
 
-			else
+			else if (*(ptr) == 'r')
 			{
 				command[count_command - 1] = CMD_PUSH_R;
 				if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
@@ -152,9 +119,18 @@ void Assembler(char* input, char* output)
 				if (*(ptr + 1) == 's') command[count_command] = CMD_RSI;
 				if (*(ptr + 1) == 'p') command[count_command] = CMD_RPI;
 			}
+			else if (*(ptr) == '[')  // Это для оперативки и видеопамяти
+			{
+
+			}
+			else
+			{
+				num_errors++;
+				printf("Invalid push argument %d\n", count_strings + 1);
+			}
 			count_command++;
 		}
-		if (strcmp(lines[i], "pop") == 0)
+		else if (strcmp(lines[i], "pop") == 0)
 		{
 			double argument = strtod(lines[i + 1], &ptr);
 			count_command++;
@@ -175,174 +151,86 @@ void Assembler(char* input, char* output)
 				if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
 			}
 			count_command++;
-		}
-		if (strcmp(lines[i], "add") == 0)
+		}		
+		ARIFMETICAL("add", ADD)
+		ARIFMETICAL("mul", MUL)
+		ARIFMETICAL("sub", SUB)
+		ARIFMETICAL("div", DIV)
+		ARIFMETICAL("out", OUT)
+		ARIFMETICAL("end", END)
+		ARIFMETICAL("ret", RET)
+		JUMPS("jmp", JMP)
+		JUMPS("call", CALL)
+		JUMPS("jb", JB)
+		JUMPS("jbe", JBE)
+		JUMPS("ja", JA)
+		JUMPS("jae", JAE)
+		JUMPS("je", JE)
+		JUMPS("jne", JNE)
+		else if (strcmp(lines[i], "") == 0);         // Do nothing
+		else if ((lines[i + 1][-2] == ':'));
+		else 
 		{
-			command[count_command] = CMD_ADD;
-			count_command++;
-		}
-		if (strcmp(lines[i], "mul") == 0)
-		{
-			command[count_command] = CMD_MUL;
-			count_command++;
-		}
-		if (strcmp(lines[i], "sub") == 0)
-		{
-			command[count_command] = CMD_SUB;
-			count_command++;
-		}
-		if (strcmp(lines[i], "div") == 0)
-		{
-			command[count_command] = CMD_DIV;
-			count_command++;
-		}
-		if (strcmp(lines[i], "out") == 0)
-		{
-			command[count_command] = CMD_OUT;
-			count_command++;
-		}
-		if (strcmp(lines[i], "end") == 0)
-		{
-			command[count_command] = CMD_END;
-			count_command++;
-		}
-		if (strcmp(lines[i], "ret") == 0)
-		{
-			command[count_command] = CMD_RET;
-			count_command++;
-		}
-		if (strcmp(lines[i], "jmp") == 0)
-		{
-			command[count_command] = CMD_JMP;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
+			if (strcmp(strings[count_strings], ""))
 			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "call") == 0)
-		{
-			command[count_command] = CMD_CALL;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "jb") == 0)
-		{
-			command[count_command] = CMD_JB;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "jbe") == 0)
-		{
-			command[count_command] = CMD_JBE;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "ja") == 0)
-		{
-			command[count_command] = CMD_JA;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "jae") == 0)
-		{
-			command[count_command] = CMD_JAE;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "je") == 0)
-		{
-			command[count_command] = CMD_JE;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
-			}
-		}
-		if (strcmp(lines[i], "jne") == 0)
-		{
-			command[count_command] = CMD_JNE;
-			count_command++;
-			i++;
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; //                                                    ???
-					break;
-				}
+				num_errors++;
+				printf("Unknown command on line %d\n", count_strings + 1);
+				// Промахивается на строку, если строка начинается не с ошибочного слова, а с нормального (помечает следующую)
 			}
 		}
 	}
 
+	if (num_errors != 0)
+	{
+		printf("You made %d syntax errors\n", num_errors);
+		free(assembliruemoe);
+		free(lines);
+		free(command);
+	}
+	assert(!num_errors);
 
-	potok = fopen(output, "wb");
+	BinaryWriter(output, count_command, count_lines, command);
+
+	free(assembliruemoe);
+	free(lines);
+	free(command);
+}
+
+int strcmp_my(char* line, char* tag)
+{
+	int differ = 0;
+
+	for (int i = 0; tag[i] != ':'; i++)
+	{
+		differ = line[i] - tag[i];
+
+		if (differ != 0) return differ;
+	}
+	return 0;
+}
+
+void FileReader(char* input, char* assembliruemoe, int size_of_input)
+{
+	FILE* potok = fopen(input, "r+");
+
+	if (errno)
+	{
+		char answer[100];
+
+		sprintf(answer, "Assembler: Problem file: %s\n", input);
+
+		perror(answer);
+		exit(1);
+	}
+
+	fread(assembliruemoe, sizeof(char), size_of_input, potok);
+
+	fclose(potok);
+}
+
+void BinaryWriter(char* output, int count_command, int count_lines, double* command)
+{
+	FILE* potok = fopen(output, "wb");
 
 	if (errno)
 	{
@@ -365,21 +253,99 @@ void Assembler(char* input, char* output)
 	//printf(">>> %d\n", entered);
 
 	fclose(potok);
-
-	free(assembliruemoe);
-	free(lines);
-	free(command);
 }
 
-int strcmp_my(char* line, char* tag)
+unsigned long KnowFileSize(char* input)
 {
-	int differ = 0;
+	struct stat buff;
+	stat(input, &buff);
 
-	for (int i = 0; tag[i] != ':'; i++)
-	{
-		differ = line[i] - tag[i];
-
-		if (differ != 0) return differ;
-	}
-	return 0;
+	return buff.st_size;
 }
+
+
+//================================================================================================
+//Код для исправления:
+/*
+if (strcmp(lines[i], "push") == 0)
+{
+	double argument = strtod(lines[i + 1], &ptr);
+	count_command++;
+	i++;
+
+	if (*ptr == '\0')
+	{
+		command[count_command - 1] = CMD_PUSH;
+		command[count_command] = argument;
+	}
+	else if (*(ptr) == 'r')
+	{
+		command[count_command - 1] = CMD_PUSH_R;
+		// Немного сомнительно
+
+		if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
+		if (strcmp(lines[i + 1], "rbx")) command[count_command] = CMD_RBX;
+		if (strcmp(lines[i + 1], "rcx")) command[count_command] = CMD_RCX;
+		if (strcmp(lines[i + 1], "rdx")) command[count_command] = CMD_RDX;
+		if (strcmp(lines[i + 1], "rsi")) command[count_command] = CMD_RSI;
+		if (strcmp(lines[i + 1], "rpi")) command[count_command] = CMD_RPI;
+	}
+	else if (*(ptr) == '[')  // Это для оперативки и видеопамяти
+	{
+
+	}
+	else
+	{
+		num_errors++;
+		printf("Invalid push argument %d\n", count_strings + 1);
+	}
+	count_command++;
+}
+else if (strcmp(lines[i], "pop") == 0)
+{
+	double argument = strtod(lines[i + 1], &ptr);
+	count_command++;
+	i++;
+
+	if (*ptr == '\0')
+	{
+		command[count_command - 1] = CMD_POP;
+		command[count_command] = argument;
+	}
+
+	else
+	{
+		command[count_command - 1] = CMD_POP_R;
+		if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
+		if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
+		if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
+		if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
+	}
+	count_command++;
+}*/
+
+// Ещё рабочий jump ===============================================================================================
+
+/*
+		else if (strcmp(lines[i], "jb") == 0)
+		{
+			command[count_command] = CMD_JB;
+			count_command++;
+			i++;
+			                                                            ПРОВЕРКА РАБОТАЕТ НЕВЕРНО
+			if (strcmp(lines[i], ""))
+			{
+				num_errors++;
+				printf("Invalid jump argument %d\n", count_strings + 1);
+			}
+
+			for (int j = 0; j < count_tags; j++)
+			{
+				if (strcmp_my(lines[i], tags[j]) == 0)
+				{
+					command[count_command] = place[j];
+					count_command++; 
+					break;
+				}
+			}
+		}*/
