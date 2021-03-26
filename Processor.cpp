@@ -14,6 +14,8 @@
 
 int NUM_OF_REG = 6;
 
+#include "Processor.h"
+
 #define rax CPU.registr[0]
 #define rbx CPU.registr[1]
 #define rcx CPU.registr[2]
@@ -30,6 +32,8 @@ struct Proc
 	int IP;
 	double* registr;
 };
+
+// int yes = 1;
 
 void CPU(char* input)
 {
@@ -56,7 +60,9 @@ void CPU(char* input)
 			case CMD_PUSH_R:
 			{
 				stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
-				//printf("push in registr %.0lf number %.0lf\n", CPU.commands[CPU.IP + 1], CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+#if 0
+				printf("push out of r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+#endif
 				CPU.IP = CPU.IP + 2;
 
 				stk.DUMP();
@@ -67,7 +73,9 @@ void CPU(char* input)
 			case CMD_POP_R:
 			{
 				CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] = stk.Pop();
-				//printf("pop in registr %.0lf number %.0ld\n", CPU.commands[CPU.IP + 1], CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+#if 0
+				printf("pop in r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+#endif
 				CPU.IP = CPU.IP + 2;
 
 				break;
@@ -75,26 +83,17 @@ void CPU(char* input)
 			case CMD_PUSH: 
 			{
 				stk.Push(CPU.commands[CPU.IP + 1]);
-				//printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
+#if 0
+				printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
+#endif
 				CPU.IP = CPU.IP + 2;
 				
 				break;
 			}
-			case CMD_ADD:
-			{
-				CPU.IP++;
-
-				rax = stk.Pop();
-				rbx = stk.Pop();
-
-				//printf("add %.0lf %.0lf\n", rax, rbx);
-
-				rax = rax + rbx;
-
-				stk.Push(rax);
-
-				break;
-			}
+			PROC_ARIFM(ADD, +)      // Вроде работает
+			PROC_ARIFM(MUL, *)
+			PROC_ARIFM(DIV, /)
+			PROC_ARIFM(SUB, -)
 			case CMD_OUT:
 			{
 				CPU.IP++;
@@ -109,50 +108,6 @@ void CPU(char* input)
 
 				break;
 			}
-			case CMD_MUL:
-			{
-				CPU.IP++;
-
-				rax = stk.Pop();
-				rbx = stk.Pop();
-
-				//printf("mul %.0lf %.0lf\n", rax, rbx);
-
-				rax = rax * rbx;
-
-				stk.Push(rax);
-				break;
-			}
-			case CMD_SUB:
-			{
-				CPU.IP++;
-
-				rax = stk.Pop();
-				rbx = stk.Pop();
-
-				//printf("sub %.0lf %.0lf\n", rax, rbx);
-
-				rax = rax - rbx;
-
-				stk.Push(rax);
-
-				break;
-			}
-			case CMD_DIV:
-			{
-				CPU.IP++;
-
-				rax = stk.Pop();
-				rbx = stk.Pop();
-
-				//printf("div %.0lf %.0lf\n", rax, rbx);
-
-				rax = rax / rbx;
-
-				stk.Push(rax);
-
-				break;
-			}
 			case CMD_CALL:
 			{
 				reg_ret.Push(CPU.IP); //                              ?????????????
@@ -160,6 +115,9 @@ void CPU(char* input)
 				CPU.IP = CPU.commands[CPU.IP + 1];
 
 				//stk.DUMP();
+#if yes
+				printf("CALL ON %d\n",  CPU.IP);
+#endif
 				reg_ret.DUMP();
 
 				break;
@@ -168,6 +126,9 @@ void CPU(char* input)
 			{
 				CPU.IP = reg_ret.Pop();
 				CPU.IP = CPU.IP + 2;
+#if yes
+				printf("RET ON %d\n", CPU.IP);
+#endif
 				reg_ret.DUMP();
 				break;
 			}
@@ -177,46 +138,16 @@ void CPU(char* input)
 
 				break;
 			}
-			case CMD_JB:
-			{
-				if (rbx < rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
-				else CPU.IP = CPU.IP + 2;
-				break;
-			}
-			case CMD_JBE:
-			{
-				if (rbx <= rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
-				else CPU.IP = CPU.IP + 2;
-				break;
-			}
-			case CMD_JA:
-			{
-				if (rbx > rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
-				else CPU.IP = CPU.IP + 2;
-				break;
-			}
-			case CMD_JAE:
-			{
-				if (rbx >= rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
-				else CPU.IP = CPU.IP + 2;
-				break;
-			}
-			case CMD_JE:
-			{
-				if (rbx == rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
-				else CPU.IP = CPU.IP + 2;
-				break;
-			}
-			case CMD_JNE:
-			{
-				if (rbx != rcx)	CPU.IP = CPU.commands[CPU.IP + 1];
-				else CPU.IP = CPU.IP + 2;
-				break;
-			}
+			PROC_JUMP(JB, <)
+			PROC_JUMP(JBE, <= )
+			PROC_JUMP(JA, > )
+			PROC_JUMP(JAE, >= )
+			PROC_JUMP(JE, == )
+			PROC_JUMP(JNE, != )
 			case CMD_END:
 			{
 				stk.DUMP();
-
+				printf("end\n");
 				return;
 			}
 		}
@@ -246,16 +177,21 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 
 	int read_out = fread(CPU.commands, sizeof(double), size_of_input, potok);
 
-	printf(">>> %d - readed\n\n", read_out);
+	//printf(">>> %d - readed\n\n", read_out);
 
-	for (int i = 0; i <= read_out; i++)
+	/*for (int i = 0; i <= read_out; i++)
 	{
-		printf("%.0lf ", CPU.commands[i]);
-	}
+		printf("%d - %.0lf\n", i, CPU.commands[i]);
+	}*/
 	printf("\n");
 	
 	fclose(potok);
 
 	return read_out;
 }
+/*
+void print_reg(struct Proc* CPU)
+{
+	printf("-------------------------\n| rax | rbx | rcx | rdx |\n-------------------------\n|%0.lf|%0.lf|%0.lf|%0.lf|\n-------------------------\n", CPU->register[0], CPU->register[1], CPU->register[2], CPU->register[3]);
+}*/
  

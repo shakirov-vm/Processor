@@ -1,0 +1,34 @@
+
+push 6
+pop rbx
+push rbx
+pop rcx
+call fact
+
+end:
+push rdx
+out
+end
+
+fact:
+push rbx
+pop rdx
+
+push rbx
+push 1
+push 1
+pop rbx
+push rcx
+jne next
+ret
+
+next:
+push rdx
+pop rbx
+sub
+pop rcx
+push rcx
+mul
+pop rbx
+call fact
+ret

@@ -58,6 +58,11 @@ void Assembler(char* input, char* output)      // line is word, string is string
 
 	size_t num_errors = 0;
 
+	/*for (int i = 0; i < count_lines; i++)
+	{
+		printf("%d - [%s]\n", i, lines[i]);
+	}*/
+
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
 		COMMANDS("push", 2, 1)
@@ -95,6 +100,7 @@ void Assembler(char* input, char* output)      // line is word, string is string
 
 	for (int i = 0; i < count_lines; i++) // continue в конце каждого if
 	{
+		printf("%d - [%s]\n", count_command, lines[i]);
 		if (strings[count_strings] < lines[i]) count_strings++;
 
 		if (strcmp(lines[i], "push") == 0)
@@ -174,7 +180,7 @@ void Assembler(char* input, char* output)      // line is word, string is string
 			if (strcmp(strings[count_strings], ""))
 			{
 				num_errors++;
-				printf("Unknown command on line %d\n", count_strings + 1);
+				printf("Unknown command on line %d - %s\n", count_strings + 1, lines[i]);
 				// Промахивается на строку, если строка начинается не с ошибочного слова, а с нормального (помечает следующую)
 			}
 		}
@@ -188,6 +194,11 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		free(command);
 	}
 	assert(!num_errors);
+
+	/*for (int i = 0; i < count_strings; i++)
+	{
+		printf("%s\n", strings[i]);
+	}*/
 
 	BinaryWriter(output, count_command, count_lines, command);
 
@@ -241,11 +252,11 @@ void BinaryWriter(char* output, int count_command, int count_lines, double* comm
 		perror(answer);
 		exit(2);
 	}
-	printf("<<< %d %d\n", count_command, count_lines);
+	/*printf("<<< %d %d\n", count_command, count_lines);
 	for (int i = 0; i < count_command; i++)
 	{
 		printf("%.0lf ", command[i]);
-	}
+	}*/
 	printf("\n");
 
 	int entered = fwrite(command, sizeof(double), count_command, potok);
