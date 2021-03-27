@@ -1,11 +1,12 @@
 
 enum COMMANDS
 {
-	CMD_PUSH = 1,
-	CMD_PUSH_R = 11,
-	CMD_POP_R = 12,
-	CMD_PUSH_RAM = 13,
-	CMD_POP  = 2,
+	CMD_PUSH     = 51,
+	CMD_PUSH_R   = 52,
+	CMD_PUSH_RAM = 53,
+	CMD_POP      = 61,
+	CMD_POP_R    = 62,
+	CMD_POP_RAM  = 63,
 	CMD_ADD  = 3,
 	CMD_SUB  = 4,
 	CMD_MUL  = 5,
