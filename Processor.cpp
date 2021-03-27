@@ -41,6 +41,8 @@ struct Proc
 	double* registr;
 	Stack_double stk;
 	Stack_int reg_ret;
+	double* RAM;
+	char* VRAM;
 };
 
 // int yes = 1;
@@ -49,13 +51,13 @@ void CPU(char* input)
 {
 	struct Proc CPU;
 
-	CPU.IP = 0;
-	CPU.registr = (double*)calloc(NUM_OF_REG, sizeof(double));
-
 	unsigned long size_of_input = KnowSizeInput(input);
 
+	CPU.IP = 0;
+	CPU.registr = (double*)calloc(NUM_OF_REG, sizeof(double));
 	CPU.commands = (double*)calloc(size_of_input, sizeof(double));
-
+	CPU.RAM  = (double*)calloc(1024, sizeof(double));
+	CPU.VRAM = (char*)calloc(1024, sizeof(char));
 
 	int read_out = CommandFiller(CPU, input, size_of_input);
 
@@ -65,6 +67,37 @@ void CPU(char* input)
 	{
 		switch ((int)CPU.commands[CPU.IP])
 		{
+			case CMD_PUSH_RAM:
+			{
+				size_t adress = 0;
+				if(((int)CPU.commands[CPU.IP + 1]) != 110)
+				{
+					adress = CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] + (int)CPU.commands[CPU.IP + 2];
+				}
+				else
+				{
+					adress = (int)CPU.commands[CPU.IP + 2];
+				}
+				CPU.IP = CPU.IP + 3;
+
+				if ((adress >= 0) && (adress <= 1023))
+				{
+					CPU.RAM[adress] = CPU.stk.Pop();
+					printf("push from stack to RAM on adress %d\n", adress);
+					//PrintRAM(&CPU);
+				}
+				else if((adress >= 1024) && (adress <= 2047))
+				{
+					CPU.VRAM[adress - 1024] = (char)CPU.stk.Pop();
+					printf("push from stack to VRAM on adress %d\n", adress);
+					//PrintVRAM(&CPU);
+				}
+				else 
+				{
+					printf("This adress is invalid - %d\n", adress);
+				}
+				continue;
+			}
 			case CMD_PUSH_R:
 			{
 				CPU.stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
@@ -91,7 +124,7 @@ void CPU(char* input)
 			case CMD_PUSH: 
 			{
 				CPU.stk.Push(CPU.commands[CPU.IP + 1]);
-#if 0
+#if 1
 				printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
 #endif
 				CPU.IP = CPU.IP + 2;
@@ -148,6 +181,7 @@ void CPU(char* input)
 			PROC_JUMP(JNE, != )
 			case CMD_END:
 			{
+				PrintRAM(&CPU);
 				CPU.stk.DUMP();
 				printf("end\n");
 				return;
@@ -184,4 +218,20 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 	fclose(potok);
 
 	return read_out;
+}
+void PrintRAM(struct Proc* CPU)
+{
+	for (int i = 0; i < 1024; i++)
+	{
+		printf("%0.lf ", CPU->RAM[i]);
+	}
+	printf("\n");
+}
+void PrintVRAM(struct Proc* CPU)
+{
+	for (int i = 0; i < 1024; i++)
+	{
+		printf("%0.lf ", CPU->VRAM[i]);
+	}
+	printf("\n");
 }
