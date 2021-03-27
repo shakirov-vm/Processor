@@ -36,8 +36,8 @@ int strcmp_my(char* line, char* tag);
 			continue;															\
 		}																		
 
-//#define STACK_CMD(NAME_LOW, NAME_HIGH)																					\
-		if (strcmp(lines[i], NAME_LOW) == 0)																				\
+#define STACK_CMD(NAME_LOW, NAME_HIGH)																						\
+		else if (strcmp(lines[i], NAME_LOW) == 0)																			\
 		{																													\
 			double argument = strtod(lines[i + 1], &ptr);																	\
 			CMD.count_command++;																							\
@@ -52,7 +52,7 @@ int strcmp_my(char* line, char* tag);
 			else if (*(ptr) == 'r')																							\
 			{																												\
 				CMD.command[CMD.count_command - 1] = CMD##_##NAME_HIGH##_##R;												\
-					 if ((*(ptr + 1) == 'a') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RAX				\
+					 if ((*(ptr + 1) == 'a') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RAX;				\
 				else if ((*(ptr + 1) == 'b') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RBX;				\
 				else if ((*(ptr + 1) == 'c') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RCX;				\
 				else if ((*(ptr + 1) == 'd') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RDX;				\
