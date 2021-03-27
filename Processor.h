@@ -5,13 +5,13 @@
 				{																	\
 					CPU.IP++;														\
 																					\
-					rax = stk.Pop();												\
-					rbx = stk.Pop();												\
+					rax = CPU.stk.Pop();											\
+					rbx = CPU.stk.Pop();											\
 																					\
 																					\
 					rax = rax ACTION rbx;											\
 																					\
-					stk.Push(rax);													\
+					CPU.stk.Push(rax);												\
 																					\
 					break;															\
 				}

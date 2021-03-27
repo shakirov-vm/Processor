@@ -15,6 +15,7 @@ int strcmp_my(char* line, char* tag);
 		{																\
 		command[count_command] = CMD##_##NAME_HIGH;						\
 		count_command++;												\
+		continue;														\
 		}
 #define JUMPS(NAME_LOW, NAME_HIGH)											    \
 		else if (strcmp(lines[i], NAME_LOW) == 0)								\
@@ -32,4 +33,5 @@ int strcmp_my(char* line, char* tag);
 					break;														\
 				}																\
 			}																	\
+			continue;															\
 		}																		

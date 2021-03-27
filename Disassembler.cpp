@@ -30,7 +30,7 @@ void Dissambler(char* input, char* output)
 		exit(1);
 	}
 
-	fread(disassembliruemoe, sizeof(double), size_of_input, potok);  // лнфер йнкхвеярбн явхршбюелнцн гюонлхмюрэ?
+	fread(disassembliruemoe, sizeof(double), size_of_input, potok);  // CAN THE AMOUNT READ MEMORABLE?
 
 	fclose(potok);
 

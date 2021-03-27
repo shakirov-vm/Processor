@@ -1,9 +1,10 @@
-//  <<ÐÓÑÑÊÈÉ ÊÎÌÌÅÍÒÀÐÈÉ>>
+//  << RUSSIAN COMMENTARY >>
 enum COMMANDS
 {
 	CMD_PUSH = 1,
 	CMD_PUSH_R = 11,
 	CMD_POP_R = 12,
+	CMD_PUSH_RAM = 13,
 	CMD_POP  = 2,
 	CMD_ADD  = 3,
 	CMD_SUB  = 4,

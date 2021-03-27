@@ -3,13 +3,21 @@
 #include <sys\stat.h>
 #include "Enum.h"
 
-#ifndef  _STACK_H
-#define _STACK_H
+#ifndef STACK_CONST_H    
+#define STACK_CONST_H  
+#include "StackConst.h"
+#endif 
 
+#if 1
+#define TYPE int
+#include "Stack.h"
+#undef TYPE
+#endif                                                        
+
+#if 1
 #define TYPE double
 #include "Stack.h"
 #undef TYPE
-
 #endif
 
 int NUM_OF_REG = 6;
@@ -31,6 +39,8 @@ struct Proc
 	double* commands;
 	int IP;
 	double* registr;
+	Stack_double stk;
+	Stack_int reg_ret;
 };
 
 // int yes = 1;
@@ -49,9 +59,9 @@ void CPU(char* input)
 
 	int read_out = CommandFiller(CPU, input, size_of_input);
 
-	Stack_double stk;
-	Stack_double reg_ret;
-	stk.DUMP();
+	//Stack_double stk;
+	//Stack_int reg_ret;
+	CPU.stk.DUMP();
 	
 	for (int i = 0; /*i < size_of_input*/; i++)
 	{
@@ -59,20 +69,20 @@ void CPU(char* input)
 		{
 			case CMD_PUSH_R:
 			{
-				stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
-#if 0
+				CPU.stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+#if 1
 				printf("push out of r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
 #endif
 				CPU.IP = CPU.IP + 2;
 
-				stk.DUMP();
-				reg_ret.DUMP();
+				CPU.stk.DUMP();
+				CPU.reg_ret.DUMP();
 
 				break;
 			}
 			case CMD_POP_R:
 			{
-				CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] = stk.Pop();
+				CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] = CPU.stk.Pop();
 #if 0
 				printf("pop in r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
 #endif
@@ -82,7 +92,7 @@ void CPU(char* input)
 			}
 			case CMD_PUSH: 
 			{
-				stk.Push(CPU.commands[CPU.IP + 1]);
+				CPU.stk.Push(CPU.commands[CPU.IP + 1]);
 #if 0
 				printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
 #endif
@@ -90,7 +100,7 @@ void CPU(char* input)
 				
 				break;
 			}
-			PROC_ARIFM(ADD, +)      // Вроде работает
+			PROC_ARIFM(ADD, +)     // It seems to work
 			PROC_ARIFM(MUL, *)
 			PROC_ARIFM(DIV, /)
 			PROC_ARIFM(SUB, -)
@@ -98,38 +108,36 @@ void CPU(char* input)
 			{
 				CPU.IP++;
 
-				rax = stk.Pop();
+				rax = CPU.stk.Pop();
 
-				printf("out %.0lf\n", rax);
+				printf("out %.0lf\n", rax);   
 
-				//stk.Push(rax);                                    КАК ЭТО СТОИТ РЕАЛИЗОВАТЬ??          
-
-				//stk.DUMP();
+				//CPU.stk.DUMP();
 
 				break;
 			}
 			case CMD_CALL:
 			{
-				reg_ret.Push(CPU.IP); //                              ?????????????
+				CPU.reg_ret.Push(CPU.IP); //                              ?????????????
 
 				CPU.IP = CPU.commands[CPU.IP + 1];
 
-				//stk.DUMP();
+				//CPU.stk.DUMP();
 #if yes
 				printf("CALL ON %d\n",  CPU.IP);
 #endif
-				reg_ret.DUMP();
+				CPU.reg_ret.DUMP();
 
 				break;
 			}
 			case CMD_RET:
 			{
-				CPU.IP = reg_ret.Pop();
+				CPU.IP = CPU.reg_ret.Pop();
 				CPU.IP = CPU.IP + 2;
 #if yes
 				printf("RET ON %d\n", CPU.IP);
 #endif
-				reg_ret.DUMP();
+				CPU.reg_ret.DUMP();
 				break;
 			}
 			case CMD_JMP:
@@ -146,7 +154,7 @@ void CPU(char* input)
 			PROC_JUMP(JNE, != )
 			case CMD_END:
 			{
-				stk.DUMP();
+				CPU.stk.DUMP();
 				printf("end\n");
 				return;
 			}
