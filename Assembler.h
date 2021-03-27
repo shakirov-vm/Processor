@@ -6,30 +6,30 @@ int strcmp_my(char* line, char* tag);
 #define COMMANDS(NAME, NUMBER, INUM)							\
 	if (strcmp(lines[i], NAME) == 0)							\
 	{															\
-		count_command = count_command + NUMBER;					\
+		CMD.count_command = CMD.count_command + NUMBER;			\
 		i = i + INUM;											\
 		continue;												\
 	}											
 #define ARIFMETICAL(NAME_LOW, NAME_HIGH)								\
 		else if (strcmp(lines[i], NAME_LOW) == 0)						\
 		{																\
-		command[count_command] = CMD##_##NAME_HIGH;						\
-		count_command++;												\
+		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;				\
+		CMD.count_command++;											\
 		continue;														\
 		}
 #define JUMPS(NAME_LOW, NAME_HIGH)											    \
 		else if (strcmp(lines[i], NAME_LOW) == 0)								\
 		{																		\
-			command[count_command] = CMD##_##NAME_HIGH;							\
-			count_command++;													\
+			CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;					\
+			CMD.count_command++;												\
 			i++;																\
 																				\
-			for (int j = 0; j < count_tags; j++)								\
+			for (int j = 0; j < lbl.count_tags; j++)							\
 			{																	\
-				if (strcmp_my(lines[i], tags[j]) == 0)							\
+				if (strcmp_my(lines[i], lbl.tags[j]) == 0)						\
 				{																\
-					command[count_command] = place[j];							\
-					count_command++;											\
+					CMD.command[CMD.count_command] = lbl.place[j];					\
+					CMD.count_command++;										\
 					break;														\
 				}																\
 			}																	\

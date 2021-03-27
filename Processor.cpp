@@ -59,11 +59,9 @@ void CPU(char* input)
 
 	int read_out = CommandFiller(CPU, input, size_of_input);
 
-	//Stack_double stk;
-	//Stack_int reg_ret;
 	CPU.stk.DUMP();
 	
-	for (int i = 0; /*i < size_of_input*/; i++)
+	for (int i = 0; ; i++)
 	{
 		switch ((int)CPU.commands[CPU.IP])
 		{
@@ -83,7 +81,7 @@ void CPU(char* input)
 			case CMD_POP_R:
 			{
 				CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] = CPU.stk.Pop();
-#if 0
+#if 1
 				printf("pop in r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
 #endif
 				CPU.IP = CPU.IP + 2;
@@ -100,7 +98,7 @@ void CPU(char* input)
 				
 				break;
 			}
-			PROC_ARIFM(ADD, +)     // It seems to work
+			PROC_ARIFM(ADD, +)    
 			PROC_ARIFM(MUL, *)
 			PROC_ARIFM(DIV, /)
 			PROC_ARIFM(SUB, -)
@@ -112,18 +110,14 @@ void CPU(char* input)
 
 				printf("out %.0lf\n", rax);   
 
-				//CPU.stk.DUMP();
-
 				break;
 			}
 			case CMD_CALL:
 			{
-				CPU.reg_ret.Push(CPU.IP); //                              ?????????????
+				CPU.reg_ret.Push(CPU.IP); 
 
 				CPU.IP = CPU.commands[CPU.IP + 1];
-
-				//CPU.stk.DUMP();
-#if yes
+#if 0
 				printf("CALL ON %d\n",  CPU.IP);
 #endif
 				CPU.reg_ret.DUMP();
@@ -134,7 +128,7 @@ void CPU(char* input)
 			{
 				CPU.IP = CPU.reg_ret.Pop();
 				CPU.IP = CPU.IP + 2;
-#if yes
+#if 0
 				printf("RET ON %d\n", CPU.IP);
 #endif
 				CPU.reg_ret.DUMP();
@@ -185,21 +179,9 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 
 	int read_out = fread(CPU.commands, sizeof(double), size_of_input, potok);
 
-	//printf(">>> %d - readed\n\n", read_out);
-
-	/*for (int i = 0; i <= read_out; i++)
-	{
-		printf("%d - %.0lf\n", i, CPU.commands[i]);
-	}*/
 	printf("\n");
 	
 	fclose(potok);
 
 	return read_out;
 }
-/*
-void print_reg(struct Proc* CPU)
-{
-	printf("-------------------------\n| rax | rbx | rcx | rdx |\n-------------------------\n|%0.lf|%0.lf|%0.lf|%0.lf|\n-------------------------\n", CPU->register[0], CPU->register[1], CPU->register[2], CPU->register[3]);
-}*/
- 

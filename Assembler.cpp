@@ -14,12 +14,29 @@
 // YOU MUST PUT EXACTLY ONE SEPARATOR BETWEEN PUSH AND ARGUMENT. IF IT'S NOT SO - UNKNOWN TEAM. If the register name is spelled incorrectly
 // - it will give an error with an incorrect register name. 
 
-void Assembler(char* input, char* output)      // line is word, string is string
+struct Labels
+{
+	char** tags;
+	size_t count_tags;
+	int* place;
+};
+struct Cmd
+{
+	double* command;
+	size_t count_command;
+};
+
+void Assembler(char* input, char* output)    
 {
 	unsigned long size_of_input = KnowFileSize(input);
 
 	char* assembliruemoe = (char*)calloc(size_of_input, sizeof(char));
-	double* command = (double*)calloc(size_of_input, sizeof(int));
+
+	struct Cmd CMD;
+
+	CMD.command = (double*)calloc(size_of_input, sizeof(int));
+	CMD.count_command = 0;
+	
 	char** lines = (char**)calloc(size_of_input, sizeof(char*));
 
 	FileReader(input, assembliruemoe, size_of_input);
@@ -37,35 +54,29 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		}
 	}
 //==================================================================
-	// Problem with last words (garbage after) Is it EXIST? 
 
-	lines[0] = assembliruemoe;    // Breaks into, in fact, words 
+	lines[0] = assembliruemoe;    
 	size_t count_lines = 1;
 
 	for (int i = 0; i < size_of_input; i++) 
 	{
 		if (isspace(assembliruemoe[i]))	
 		{
-			lines[count_lines] = assembliruemoe + i + 1;                               // Move to function 
+			lines[count_lines] = assembliruemoe + i + 1;                               
 			count_lines++;
 			assembliruemoe[i] = '\0';
 		}
-	}
+	}														
 
-	size_t count_command = 0;															// Do I need it? - Yes
+	struct Labels lbl;
 
-	char** tags = (char**)calloc(count_lines, sizeof(char*));
-	size_t count_tags = 0;
-	int* place = (int*)calloc(count_lines, sizeof(int));
+	lbl.tags = (char**)calloc(count_lines, sizeof(char*));
+	lbl.count_tags = 0;
+	lbl.place = (int*)calloc(count_lines, sizeof(int));
 
 	size_t num_errors = 0;
 
-	/*for (int i = 0; i < count_lines; i++)
-	{
-		printf("%d - [%s]\n", i, lines[i]);
-	}*/
-
-	for (int i = 0; i < count_lines; i++) // continue at the end of each if
+	for (int i = 0; i < count_lines; i++)
 	{
 		COMMANDS("push", 2, 1)
 		COMMANDS("pop", 2, 1)
@@ -88,43 +99,156 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		{
 			if ((lines[i + 1][-2] == ':'))
 			{
-				tags[count_tags] = lines[i];
-				place[count_tags] = count_command;    //                             HOW IS IT WORTH IMPLEMENTING ??
-				count_tags++;
+				lbl.tags[lbl.count_tags] = lines[i];
+				lbl.place[lbl.count_tags] = CMD.count_command;
+				lbl.count_tags++;
 			}
 		}
 	}
 //=========================================================================================================================================
-	count_command = 0;                                                              //         COPYPASTE
+	CMD.count_command = 0;
 	count_strings = 0;
 //=========================================================================================================================================
 	char* ptr;
 
-	for (int i = 0; i < count_lines; i++) // continue at the end of each if
+	for (int i = 0; i < count_lines; i++) 
 	{
-		printf("%d - [%s]\n", count_command, lines[i]);
+		//printf("%d - [%s]\n", CMD.count_command, lines[i]);
 
 		if (strcmp(lines[i], "push") == 0)
 		{
 			double argument = strtod(lines[i + 1], &ptr);
-			count_command++;
+			CMD.count_command++;
+			i++;
+
+/* 1 */		if (*ptr == '\0')
+			{
+				CMD.command[CMD.count_command - 1] = CMD_PUSH;
+				CMD.command[CMD.count_command] = argument;
+				CMD.count_command++;
+			}
+/* 2 */		else if (*(ptr) == 'r')
+			{
+				CMD.command[CMD.count_command - 1] = CMD_PUSH_R;
+					 if ((*(ptr + 1) == 'a') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RAX;
+				else if ((*(ptr + 1) == 'b') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RBX;
+				else if ((*(ptr + 1) == 'c') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RCX;
+				else if ((*(ptr + 1) == 'd') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RDX;
+				else if ((*(ptr + 1) == 's') && (*(ptr + 2) == 'i')) CMD.command[CMD.count_command] = CMD_RSI;
+				else if ((*(ptr + 1) == 'p') && (*(ptr + 2) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
+				else
+				{
+					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+					num_errors++;
+				}
+				CMD.count_command++;
+			}
+/* 3 */		else if (*(ptr) == '[') 
+			{
+				if (*(ptr + 1) == 'r')
+				{
+					CMD.command[CMD.count_command - 1] = CMD_PUSH_RAM;
+
+						 if ((*(ptr + 2) == 'a') && (*(ptr + 3) == 'x')) CMD.command[CMD.count_command] = CMD_RAX;
+					else if ((*(ptr + 2) == 'b') && (*(ptr + 3) == 'x')) CMD.command[CMD.count_command] = CMD_RBX;
+					else if ((*(ptr + 2) == 'c') && (*(ptr + 3) == 'x')) CMD.command[CMD.count_command] = CMD_RCX;
+					else if ((*(ptr + 2) == 'd') && (*(ptr + 3) == 'x')) CMD.command[CMD.count_command] = CMD_RDX;
+					else if ((*(ptr + 2) == 's') && (*(ptr + 3) == 'i')) CMD.command[CMD.count_command] = CMD_RSI;
+					else if ((*(ptr + 2) == 'p') && (*(ptr + 3) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
+					else
+					{
+						printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+						num_errors++;
+					}
+
+					if (*(ptr + 4) == ']')
+					{
+						CMD.command[CMD.count_command - 1] = CMD_PUSH_RAM;
+						CMD.command[CMD.count_command + 1] = 0;
+						CMD.count_command = CMD.count_command + 2;                                                   
+					}
+					else if (*(ptr + 5) == '+')
+					{
+						if (isdigit(*(ptr + 7)))
+						{
+							argument = strtod (ptr + 7, &ptr);
+
+							if (*(ptr) == ']')
+							{
+								CMD.command[CMD.count_command - 1] = CMD_PUSH_RAM;
+								CMD.command[CMD.count_command + 1] = argument;
+								CMD.count_command = CMD.count_command + 2;
+							}
+							else 
+							{
+								printf("Error in [rax + num] - you forgot <<]>>. It's on line %d\n", count_strings + 1);
+								num_errors++;
+							}
+						}
+						else
+						{
+							printf("Error in [rax + num] - waiting number. It's on line %d\n", count_strings + 1);
+							num_errors++;
+						}
+					}
+					else
+					{
+						printf("Error in [rax]. It's on line %d\n", count_strings + 1);
+						num_errors++;
+					}
+				}
+				else if (isdigit(*(ptr + 1)))	
+				{	
+					argument = strtod(ptr + 1, &ptr);
+
+					if (*(ptr) == ']')
+					{
+						CMD.command[CMD.count_command - 1] = CMD_PUSH_RAM;
+						CMD.command[CMD.count_command - 0] = CMD_NOT_REG;
+						CMD.command[CMD.count_command + 1] = argument;
+						CMD.count_command = CMD.count_command + 2;
+					}
+					else
+					{
+						printf("Error in [num]. It's on line %d\n", count_strings + 1);
+						num_errors++;
+					}
+				}
+				else
+				{
+					printf("Error in []. It's on line %d\n", count_strings + 1);
+					num_errors++;
+				}
+			}
+/* 4 */		else
+			{
+				num_errors++;
+				printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
+
+				CMD.count_command--;
+			}
+		}
+		else if (strcmp(lines[i], "pop") == 0)
+		{
+			double argument = strtod(lines[i + 1], &ptr);
+			CMD.count_command++;
 			i++;
 
 			if (*ptr == '\0')
 			{
-				command[count_command - 1] = CMD_PUSH;
-				command[count_command] = argument;
+				CMD.command[CMD.count_command - 1] = CMD_POP;
+				CMD.command[CMD.count_command] = argument;
 			}
 
 			else if (*(ptr) == 'r')
 			{
-				command[count_command - 1] = CMD_PUSH_R;
-				if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
-				else if ((*(ptr + 1) == 'b') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RBX;
-				else if ((*(ptr + 1) == 'c') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RCX;
-				else if ((*(ptr + 1) == 'd') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RDX;
-				else if ((*(ptr + 1) == 's') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RSI;
-				else if ((*(ptr + 1) == 'p') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RPI;
+				CMD.command[CMD.count_command - 1] = CMD_POP_R;
+					 if ((*(ptr + 1) == 'a') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RAX;
+				else if ((*(ptr + 1) == 'b') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RBX;
+				else if ((*(ptr + 1) == 'c') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RCX;
+				else if ((*(ptr + 1) == 'd') && (*(ptr + 2) == 'x')) CMD.command[CMD.count_command] = CMD_RDX;
+				else if ((*(ptr + 1) == 's') && (*(ptr + 2) == 'i')) CMD.command[CMD.count_command] = CMD_RSI;
+				else if ((*(ptr + 1) == 'p') && (*(ptr + 2) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
 				else
 				{
 					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
@@ -138,51 +262,11 @@ void Assembler(char* input, char* output)      // line is word, string is string
 			else
 			{
 				num_errors++;
-				printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
-
-				count_command--;
-			}
-			count_command++;
-		}
-		else if (strcmp(lines[i], "pop") == 0)
-		{
-			double argument = strtod(lines[i + 1], &ptr);
-			count_command++;
-			i++;
-
-			if (*ptr == '\0')
-			{
-				command[count_command - 1] = CMD_POP;
-				command[count_command] = argument;
-			}
-
-			else if (*(ptr) == 'r')
-			{
-				command[count_command - 1] = CMD_POP_R;
-					 if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
-				else if ((*(ptr + 1) == 'b') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RBX;
-				else if ((*(ptr + 1) == 'c') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RCX;
-				else if ((*(ptr + 1) == 'd') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RDX;
-				else if ((*(ptr + 1) == 's') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RSI;
-				else if ((*(ptr + 1) == 'p') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RPI;
-				else
-				{
-					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
-					num_errors++;
-				}
-			}
-			else if (*(ptr) == '[')  // This is for RAM and video memory
-			{
-				printf("FIND\n");
-			}
-			else
-			{
-				num_errors++;
 				printf("Invalid pop argument %d - %s\n", count_strings + 1, lines[i]);
 
-				count_command--;
+				CMD.count_command--;
 			}
-			count_command++;
+			CMD.count_command++;
 		}
 		ARIFMETICAL("add", ADD)
 		ARIFMETICAL("mul", MUL)
@@ -200,21 +284,21 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		JUMPS("je", JE)      // Want to define
 		else if (strcmp(lines[i], "jne") == 0)																\
 		{																									\
-			command[count_command] = CMD_JNE;																\
-			count_command++;																				\
+			CMD.command[CMD.count_command] = CMD_JNE;																\
+			CMD.count_command++;																				\
 			i++;																							\
 																											\
 			int find = 0;																					\
 																											\
-			for (int j = 0; j < count_tags; j++)															\
+			for (int j = 0; j < lbl.count_tags; j++)															\
 			{																								\
-				if (strcmp_my(lines[i], tags[j]) == 0)														\
+				if (strcmp_my(lines[i], lbl.tags[j]) == 0)														\
 				{																							\
-					command[count_command] = place[j];														\
-					count_command++;																		\
+					CMD.command[CMD.count_command] = lbl.place[j];														\
+					CMD.count_command++;																		\
 					find++;																					\
 																											\
-					break;																						
+					break;																					 	
 				}																							\
 			}																								\
 			if (find == 0)																					\
@@ -223,7 +307,7 @@ void Assembler(char* input, char* output)      // line is word, string is string
 				num_errors++;																				\
 			}																								\
 		}	
-		else if (strcmp(lines[i], "") == 0);         // Do nothing
+		else if (strcmp(lines[i], "") == 0);        
  		else if ((lines[i + 1][-2] == ':'));
 		else 
 		{
@@ -231,7 +315,6 @@ void Assembler(char* input, char* output)      // line is word, string is string
 			{
 				num_errors++;
 				printf("Unknown command on line %d - %s\n", count_strings + 1, lines[i]);
-				// Misses a line if the line starts not with an error word, but with a normal one (marks the next one)
 			}
 		}
 		if (strings[count_strings] < lines[i]) count_strings++;
@@ -242,21 +325,16 @@ void Assembler(char* input, char* output)      // line is word, string is string
 		printf("You made %d syntax errors\n", num_errors);
 		free(assembliruemoe);
 		free(lines);
-		free(command);
+		free(CMD.command);
 	}
-	assert(!num_errors);
-	// RETURN ERROR?
 
-	/*for (int i = 0; i < count_strings; i++)
-	{
-		printf("%s\n", strings[i]);
-	}*/
+	BinaryWriter(output, CMD.count_command, count_lines, CMD.command);
 
-	BinaryWriter(output, count_command, count_lines, command);
+	assert(!num_errors);															// Return BACK
 
 	free(assembliruemoe);
 	free(lines);
-	free(command);
+	free(CMD.command);
 }
 
 int strcmp_my(char* line, char* tag)
@@ -313,8 +391,6 @@ void BinaryWriter(char* output, int count_command, int count_lines, double* comm
 
 	int entered = fwrite(command, sizeof(double), count_command, potok);
 
-	printf(">>> %d\n", entered);
-
 	fclose(potok);
 }
 
@@ -329,97 +405,6 @@ unsigned long KnowFileSize(char* input)
 
 //================================================================================================
 // Code to fix:
-/*
-if (strcmp(lines[i], "push") == 0)
-{
-	double argument = strtod(lines[i + 1], &ptr);
-	count_command++;
-	i++;
-
-	if (*ptr == '\0')
-	{
-		command[count_command - 1] = CMD_PUSH;
-		command[count_command] = argument;
-	}
-	else if (*(ptr) == 'r')
-	{
-		command[count_command - 1] = CMD_PUSH_R;
-		// A little doubtful
-
-		if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
-		if (strcmp(lines[i + 1], "rbx")) command[count_command] = CMD_RBX;
-		if (strcmp(lines[i + 1], "rcx")) command[count_command] = CMD_RCX;
-		if (strcmp(lines[i + 1], "rdx")) command[count_command] = CMD_RDX;
-		if (strcmp(lines[i + 1], "rsi")) command[count_command] = CMD_RSI;
-		if (strcmp(lines[i + 1], "rpi")) command[count_command] = CMD_RPI;
-	}
-	else if (*(ptr) == '[')  
-	{
-
-	}
-	else
-	{
-		num_errors++;
-		printf("Invalid push argument %d\n", count_strings + 1);
-	}
-	count_command++;
-}
-else if (strcmp(lines[i], "pop") == 0)
-{
-	double argument = strtod(lines[i + 1], &ptr);
-	count_command++;
-	i++;
-
-	if (*ptr == '\0')
-	{
-		command[count_command - 1] = CMD_POP;
-		command[count_command] = argument;
-	}
-
-	else
-	{
-		command[count_command - 1] = CMD_POP_R;
-		if (*(ptr + 1) == 'a') command[count_command] = CMD_RAX;
-		if (*(ptr + 1) == 'b') command[count_command] = CMD_RBX;
-		if (*(ptr + 1) == 'c') command[count_command] = CMD_RCX;
-		if (*(ptr + 1) == 'd') command[count_command] = CMD_RDX;
-	}
-	count_command++;
-}*/
-
-//Another working jump ===================================================================================
-
-/*
-		else if (strcmp(lines[i], "jb") == 0)
-		{
-			command[count_command] = CMD_JB;
-			count_command++;
-			i++;
-			                                                           CHECK RUNNING WRONG
-			if (strcmp(lines[i], ""))
-			{
-				num_errors++;
-				printf("Invalid jump argument %d\n", count_strings + 1);
-			}
-
-			for (int j = 0; j < count_tags; j++)
-			{
-				if (strcmp_my(lines[i], tags[j]) == 0)
-				{
-					command[count_command] = place[j];
-					count_command++; 
-					break;
-				}
-			}
-		}*/
-
-
-
-
-
-
-
-
 
 /*
 if (strcmp(lines[i], "push") == 0)

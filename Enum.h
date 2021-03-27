@@ -1,4 +1,4 @@
-//  << RUSSIAN COMMENTARY >>
+
 enum COMMANDS
 {
 	CMD_PUSH = 1,
@@ -33,5 +33,6 @@ enum REGISTERS
 	CMD_RCX = 113,
 	CMD_RDX = 114,
 	CMD_RSI = 115,
-	CMD_RPI = 116
+	CMD_RPI = 116,
+	CMD_NOT_REG = 110
 };
