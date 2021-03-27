@@ -61,37 +61,48 @@ void Dissambler(char* input, char* output)
 				{
 					case CMD_RAX:
 					{
-						fprintf(potok, "push rax\n", disassembliruemoe[i + 1]);
+						fprintf(potok, "push rax\n");
 						break;
 					}
 					case CMD_RBX:
 					{
-						fprintf(potok, "push rbx\n", disassembliruemoe[i + 1]);
+						fprintf(potok, "push rbx\n");
 						break;
 					}
 					case CMD_RCX:
 					{
-						fprintf(potok, "push rcx\n", disassembliruemoe[i + 1]);
+						fprintf(potok, "push rcx\n");
 						break;
 					}
 					case CMD_RDX:
 					{
-						fprintf(potok, "push rdx\n", disassembliruemoe[i + 1]);
+						fprintf(potok, "push rdx\n");
 						break;
 					}
 					case CMD_RSI:
 					{
-						fprintf(potok, "push rsi\n", disassembliruemoe[i + 1]);
+						fprintf(potok, "push rsi\n");
 						break;
 					}
 					case CMD_RPI:
 					{
-						fprintf(potok, "push rpi\n", disassembliruemoe[i + 1]);
+						fprintf(potok, "push rpi\n");
 						break;
 					}
 				}
 				i++;
 				break;
+			}
+			case CMD_PUSH_RAM:
+			{
+				if ((int)disassembliruemoe[i + 1] == CMD_NOT_REG)
+				{
+					fprintf(potok, "push [%d]\n", (int)disassembliruemoe[i + 2]);
+				}
+				else
+				{
+					fprintf(potok, "push [r%cx + %d]\n", (int)disassembliruemoe[i + 1] - CMD_RAX + 97, (int)disassembliruemoe[i + 2]);
+				}
 			}
 			case CMD_POP_R:
 			{
@@ -173,37 +184,37 @@ void Dissambler(char* input, char* output)
 			}
 			case CMD_JMP:
 			{
-				fprintf(potok, "jmp %lf\n");
+				fprintf(potok, "jmp %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 			case CMD_JB:
 			{
-				fprintf(potok, "jb %lf\n");
+				fprintf(potok, "jb %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 			case CMD_JBE:
 			{
-				fprintf(potok, "jbe %lf\n");
+				fprintf(potok, "jbe %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 			case CMD_JA:
 			{
-				fprintf(potok, "ja %lf\n");
+				fprintf(potok, "ja %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 			case CMD_JAE:
 			{
-				fprintf(potok, "jae %lf\n");
+				fprintf(potok, "jae %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 			case CMD_JNE:
 			{
-				fprintf(potok, "jne %lf\n");
+				fprintf(potok, "jne %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 			case CMD_JE:
 			{
-				fprintf(potok, "je %lf\n");
+				fprintf(potok, "je %lf\n", disassembliruemoe[i + 1]);
 				break;
 			}
 		}
