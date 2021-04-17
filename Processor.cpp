@@ -1,7 +1,11 @@
 ﻿#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef ENUM_H
+#define ENUM_H
 #include "Enum.h"
+#endif
 
 #ifndef STACK_CONST_H    
 #define STACK_CONST_H  
@@ -20,22 +24,25 @@
 #undef TYPE
 #endif
 
-int NUM_OF_REG = 6;
-
+#ifndef PROCESSOR_H    
+#define PROCESSOR_H
 #include "Processor.h"
+#endif 
 
-#define rax CPU.registr[0]
-#define rbx CPU.registr[1]
-#define rcx CPU.registr[2]
-#define rdx CPU.registr[3]
-#define rsi CPU.registr[4]
-#define rpi CPU.registr[5]
+#define NUM_OF_REG 6
 
-unsigned long KnowSizeInput(char* input);
-int CommandFiller(struct Proc CPU, char* input, int size_of_input);
+#define rax registr[0]
+#define rbx registr[1]
+#define rcx registr[2]
+#define rdx registr[3]
+#define rsi registr[4]
+#define rpi registr[5]
 
-struct Proc
+size_t KnowSizeInput(char* input);
+
+class Proc
 {
+public:
 	double* commands;
 	int IP;
 	double* registr;
@@ -43,52 +50,74 @@ struct Proc
 	Stack_int reg_ret;
 	double* RAM;
 	char* VRAM;
+
+	Proc(size_t size_of_input);
+	~Proc();
+	const Proc& operator= (const Proc& CPU) = delete;
+	Proc(const Proc& CPU) = delete;
+	int CommandFiller(char* input, int size_of_input);
+	void CPUHandle();
+	void PrintRAM();
+	void PrintVRAM();
 };
 
-// int yes = 1;
-
-void CPU(char* input)
+Proc::Proc(size_t size_of_input)
 {
-	struct Proc CPU;
+	IP = 0;
+	registr = (double*)calloc(NUM_OF_REG, sizeof(double));
+	commands = (double*)calloc(size_of_input, sizeof(double));
+	RAM  = (double*)calloc(1024, sizeof(double));
+	VRAM = (char*)calloc(1024, sizeof(char));
+}
+Proc::~Proc()
+{
+	free(registr);
+	free(commands);
+	free(RAM);
+	free(VRAM);
+}
 
-	unsigned long size_of_input = KnowSizeInput(input);
+void Processor(char* input)
+{
+	size_t size_of_input = KnowSizeInput(input);
 
-	CPU.IP = 0;
-	CPU.registr = (double*)calloc(NUM_OF_REG, sizeof(double));
-	CPU.commands = (double*)calloc(size_of_input, sizeof(double));
-	CPU.RAM  = (double*)calloc(1024, sizeof(double));
-	CPU.VRAM = (char*)calloc(1024, sizeof(char));
-
-	int read_out = CommandFiller(CPU, input, size_of_input);
+	class Proc CPU(size_of_input);
+	
+	int read_out = CPU.CommandFiller(input, size_of_input);
 
 	CPU.stk.DUMP();
 	
+	CPU.CPUHandle();
+}
+
+void Proc::CPUHandle()
+{
 	for (int i = 0; ; i++)
 	{
-		switch ((int)CPU.commands[CPU.IP])
+		switch ((int)commands[IP])
 		{
 			case CMD_PUSH_RAM:
 			{
 				size_t adress = 0;
-				if(((int)CPU.commands[CPU.IP + 1]) != 110)
+				if(((int)commands[IP + 1]) != 110)
 				{
-					adress = CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] + (int)CPU.commands[CPU.IP + 2];
+					adress = registr[(int)commands[IP + 1] - CMD_RAX] + (int)commands[IP + 2];
 				}
 				else
 				{
-					adress = (int)CPU.commands[CPU.IP + 2];
+					adress = (int)commands[IP + 2];
 				}
-				CPU.IP = CPU.IP + 3;
+				IP = IP + 3;
 
 				if ((adress >= 0) && (adress <= 1023))
 				{
-					CPU.RAM[adress] = CPU.stk.Pop();
+					RAM[adress] = stk.Pop();
 					printf("push from stack to RAM on adress %ld\n", adress);
 					//PrintRAM(&CPU);
 				}
 				else if((adress >= 1024) && (adress <= 2047))
 				{
-					CPU.VRAM[adress - 1024] = (char)CPU.stk.Pop();
+					VRAM[adress - 1024] = (char)stk.Pop();
 					printf("push from stack to VRAM on adress %ld\n", adress);
 					//PrintVRAM(&CPU);
 				}
@@ -100,34 +129,34 @@ void CPU(char* input)
 			}
 			case CMD_PUSH_R:
 			{
-				CPU.stk.Push(CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+				stk.Push(registr[(int)commands[IP + 1] - CMD_RAX]);
 #if 1
-				printf("push out of r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+				printf("push out of r%cx number <%.0lf>\n", (int)(commands[IP + 1] - CMD_RAX + 97), registr[(int)commands[IP + 1] - CMD_RAX]);
 #endif
-				CPU.IP = CPU.IP + 2;
+				IP = IP + 2;
 
-				CPU.stk.DUMP();
-				CPU.reg_ret.DUMP();
+				stk.DUMP();
+				reg_ret.DUMP();
 
 				break;
 			}
 			case CMD_POP_R:
 			{
-				CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX] = CPU.stk.Pop();
+				registr[(int)commands[IP + 1] - CMD_RAX] = stk.Pop();
 #if 1
-				printf("pop in r%cx number <%.0lf>\n", (int)(CPU.commands[CPU.IP + 1] - CMD_RAX + 97), CPU.registr[(int)CPU.commands[CPU.IP + 1] - CMD_RAX]);
+				printf("pop in r%cx number <%.0lf>\n", (int)(commands[IP + 1] - CMD_RAX + 97), registr[(int)commands[IP + 1] - CMD_RAX]);
 #endif
-				CPU.IP = CPU.IP + 2;
+				IP = IP + 2;
 
 				break;
 			}
 			case CMD_PUSH: 
 			{
-				CPU.stk.Push(CPU.commands[CPU.IP + 1]);
+				stk.Push(commands[IP + 1]);
 #if 1
-				printf("push %.0lf\n", CPU.commands[CPU.IP + 1]);
+				printf("push %.0lf\n", commands[IP + 1]);
 #endif
-				CPU.IP = CPU.IP + 2;
+				IP = IP + 2;
 				
 				break;
 			}
@@ -137,9 +166,9 @@ void CPU(char* input)
 			PROC_ARIFM(SUB, -)
 			case CMD_OUT:
 			{
-				CPU.IP++;
+				IP++;
 
-				rax = CPU.stk.Pop();
+				rax = stk.Pop();
 
 				printf("out %.0lf\n", rax);   
 
@@ -147,29 +176,29 @@ void CPU(char* input)
 			}
 			case CMD_CALL:
 			{
-				CPU.reg_ret.Push(CPU.IP); 
+				reg_ret.Push(IP); 
 
-				CPU.IP = CPU.commands[CPU.IP + 1];
+				IP = commands[IP + 1];
 #if 0
-				printf("CALL ON %d\n",  CPU.IP);
+				printf("CALL ON %d\n",  IP);
 #endif
-				CPU.reg_ret.DUMP();
+				reg_ret.DUMP();
 
 				break;
 			}
 			case CMD_RET:
 			{
-				CPU.IP = CPU.reg_ret.Pop();
-				CPU.IP = CPU.IP + 2;
+				IP = reg_ret.Pop();
+				IP = IP + 2;
 #if 0
-				printf("RET ON %d\n", CPU.IP);
+				printf("RET ON %d\n", IP);
 #endif
-				CPU.reg_ret.DUMP();
+				reg_ret.DUMP();
 				break;
 			}
 			case CMD_JMP:
 			{
-				CPU.IP = CPU.commands[CPU.IP + 1];
+				IP = commands[IP + 1];
 
 				break;
 			}
@@ -181,8 +210,8 @@ void CPU(char* input)
 			PROC_JUMP(JNE, != )
 			case CMD_END:
 			{
-				//PrintRAM(&CPU);
-				CPU.stk.DUMP();
+				//this->PrintRAM();
+				stk.DUMP();
 				printf("end\n");
 				return;
 			}
@@ -190,14 +219,14 @@ void CPU(char* input)
 	}
 }
 
-unsigned long KnowSizeInput(char* input)
+size_t KnowSizeInput(char* input)
 {
 	struct stat buff;
 	stat(input, &buff);
 	return buff.st_size;
 }
 
-int CommandFiller(struct Proc CPU, char* input, int size_of_input)
+int Proc::CommandFiller(char* input, int size_of_input)
 {
 	FILE* potok = fopen(input, "rb");
 
@@ -211,7 +240,7 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 		exit(1);
 	}
 
-	int read_out = fread(CPU.commands, sizeof(double), size_of_input, potok);
+	int read_out = fread(commands, sizeof(double), size_of_input, potok);
 
 	printf("\n");
 	
@@ -219,19 +248,19 @@ int CommandFiller(struct Proc CPU, char* input, int size_of_input)
 
 	return read_out;
 }
-void PrintRAM(struct Proc* CPU)
+void Proc::PrintRAM()
 {
 	for (int i = 0; i < 1024; i++)
 	{
-		printf("%0.lf ", CPU->RAM[i]);
+		printf("%0.lf ", RAM[i]);
 	}
 	printf("\n");
 }
-void PrintVRAM(struct Proc* CPU)
+void Proc::PrintVRAM()
 {
 	for (int i = 0; i < 1024; i++)
 	{
-		printf("%c ", CPU->VRAM[i]);
+		printf("%c ", VRAM[i]);
 	}
 	printf("\n");
 }
