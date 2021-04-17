@@ -22,4 +22,5 @@
 				if (rbx ACTION rcx)	CPU.IP = CPU.commands[CPU.IP + 1];				\
 				else CPU.IP = CPU.IP + 2;											\
 				break;																\
-			}																		\
+			}																		
+			

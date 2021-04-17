@@ -1,6 +1,6 @@
 ﻿#include <ctype.h>
-#include <sys\types.h>
-#include <sys\stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "Enum.h"
 
 #ifndef STACK_CONST_H    
@@ -83,18 +83,18 @@ void CPU(char* input)
 				if ((adress >= 0) && (adress <= 1023))
 				{
 					CPU.RAM[adress] = CPU.stk.Pop();
-					printf("push from stack to RAM on adress %d\n", adress);
+					printf("push from stack to RAM on adress %ld\n", adress);
 					//PrintRAM(&CPU);
 				}
 				else if((adress >= 1024) && (adress <= 2047))
 				{
 					CPU.VRAM[adress - 1024] = (char)CPU.stk.Pop();
-					printf("push from stack to VRAM on adress %d\n", adress);
+					printf("push from stack to VRAM on adress %ld\n", adress);
 					//PrintVRAM(&CPU);
 				}
 				else 
 				{
-					printf("This adress is invalid - %d\n", adress);
+					printf("This adress is invalid - %ld\n", adress);
 				}
 				continue;
 			}
@@ -181,7 +181,7 @@ void CPU(char* input)
 			PROC_JUMP(JNE, != )
 			case CMD_END:
 			{
-				PrintRAM(&CPU);
+				//PrintRAM(&CPU);
 				CPU.stk.DUMP();
 				printf("end\n");
 				return;
@@ -231,7 +231,7 @@ void PrintVRAM(struct Proc* CPU)
 {
 	for (int i = 0; i < 1024; i++)
 	{
-		printf("%0.lf ", CPU->VRAM[i]);
+		printf("%c ", CPU->VRAM[i]);
 	}
 	printf("\n");
 }

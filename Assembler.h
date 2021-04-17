@@ -1,39 +1,23 @@
-unsigned long KnowFileSize(char* input);
-void FileReader(char* input, char* assembliruemoe, int size_of_input);
-void BinaryWriter(char* output, int count_command, int count_lines, double* command);
+size_t KnowFileSize(char* input);
+void FileReader(char* input, char* assembliruemoe, size_t size_of_input);
+void BinaryWriter(char* output, size_t count_command, size_t count_lines, double* command);
 int strcmp_my(char* line, char* tag);
+
+void CountInc(size_t* count_command, int* i, int cc_inc, int i_inc);
+int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, size_t* count_strings);
 
 #define COMMANDS(NAME, NUMBER, INUM)							\
 	if (strcmp(lines[i], NAME) == 0)							\
 	{															\
-		CMD.count_command = CMD.count_command + NUMBER;			\
-		i = i + INUM;											\
+		CountInc(&(CMD.count_command), &i, NUMBER, INUM);		\
 		continue;												\
 	}											
 #define ARIFMETICAL(NAME_LOW, NAME_HIGH)								\
 		else if (strcmp(lines[i], NAME_LOW) == 0)						\
 		{																\
 		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;				\
-		CMD.count_command++;											\
+		CountInc(&(CMD.count_command), &i, 1, 0);						\
 		continue;														\
-		}
-//#define JUMPS(NAME_LOW, NAME_HIGH)											    \
-		else if (strcmp(lines[i], NAME_LOW) == 0)								\
-		{																		\
-			CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;					\
-			CMD.count_command++;												\
-			i++;																\
-																				\
-			for (int j = 0; j < lbl.count_tags; j++)							\
-			{																	\
-				if (strcmp_my(lines[i], lbl.tags[j]) == 0)						\
-				{																\
-					CMD.command[CMD.count_command] = lbl.place[j];				\
-					CMD.count_command++;										\
-					break;														\
-				}																\
-			}																	\
-			continue;															\
 		}																		
 
 #define STACK_CMD(NAME_LOW, NAME_HIGH)																						\
@@ -155,27 +139,8 @@ int strcmp_my(char* line, char* tag);
 		else if (strcmp(lines[i], NAME_LOW) == 0)															\
 		{																									\
 		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;													\
-		CMD.count_command++;																				\
-		i++;																								\
-																											\
-		int find = 0;																						\
-																											\
-		for (int j = 0; j < lbl.count_tags; j++)															\
-		{																									\
-			if (strcmp_my(lines[i], lbl.tags[j]) == 0)														\
-			{																								\
-				CMD.command[CMD.count_command] = lbl.place[j];												\
-				CMD.count_command++;																		\
-				find++;																						\
-																											\
-				break;																						\
-			}																								\
-		}																									\
-			if (find == 0)																					\
-			{																								\
-				printf("This tag - <%s> - is unknown. Error. Line is %d\n", lines[i], count_strings + 1);	\
-				num_errors++;																				\
-			}																								\
+		int brk = JumpHandler (&CMD, &lbl, &i, &num_errors, &lines, &count_strings);						\
+		if (brk == 1) continue;																				\
 		}
 
 

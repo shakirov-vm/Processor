@@ -14,12 +14,31 @@
 // YOU MUST PUT EXACTLY ONE SEPARATOR BETWEEN PUSH AND ARGUMENT. IF IT'S NOT SO - UNKNOWN TEAM. If the register name is spelled incorrectly
 // - it will give an error with an incorrect register name. 
 
-struct Labels
+class Labels
 {
+public:
+
 	char** tags;
 	size_t count_tags;
 	int* place;
+
+	Labels(size_t count_lines);
+	~Labels();
+	const Labels& operator= (const Labels& lbl) = delete;
+	Labels(const Labels& lbl) = delete;
+
 };
+Labels::Labels(size_t count_lines)
+{
+	tags = (char**)calloc(count_lines, sizeof(char*));
+	count_tags = 0;
+	place = (int*)calloc(count_lines, sizeof(int));
+}
+Labels::~Labels()
+{
+	free(tags);
+	free(place);
+}
 struct Cmd
 {
 	double* command;
@@ -28,7 +47,7 @@ struct Cmd
 
 void Assembler(char* input, char* output)    
 {
-	unsigned long size_of_input = KnowFileSize(input);
+	size_t size_of_input = KnowFileSize(input);
 
 	char* assembliruemoe = (char*)calloc(size_of_input, sizeof(char));
 
@@ -68,17 +87,13 @@ void Assembler(char* input, char* output)
 		}
 	}														
 
-	struct Labels lbl;
-
-	lbl.tags = (char**)calloc(count_lines, sizeof(char*));
-	lbl.count_tags = 0;
-	lbl.place = (int*)calloc(count_lines, sizeof(int));
+	class Labels lbl(count_lines);
 
 	size_t num_errors = 0;
 
 	for (int i = 0; i < count_lines; i++)
 	{
-		COMMANDS("push", 2, 1)
+		COMMANDS("push", 2, 1)	
 		COMMANDS("pop", 2, 1)
 		COMMANDS("add", 1, 0)
 		COMMANDS("mul", 1, 0)
@@ -113,7 +128,7 @@ void Assembler(char* input, char* output)
 
 	for (int i = 0; i < count_lines; i++) 
 	{
-		//printf("%d - [%s]\n", CMD.count_command, lines[i]);
+		//printf("%ld - [%s]\n", CMD.count_command, lines[i]);
 
 		if (strcmp(lines[i], "push") == 0)
 		{
@@ -138,7 +153,7 @@ void Assembler(char* input, char* output)
 				else if ((*(ptr + 1) == 'p') && (*(ptr + 2) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
 				else
 				{
-					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+					printf("Invalid registr - %s, line is %ld\n", lines[i], count_strings + 1);
 					num_errors++;
 				}
 				CMD.count_command++;
@@ -157,7 +172,7 @@ void Assembler(char* input, char* output)
 					else if ((*(ptr + 2) == 'p') && (*(ptr + 3) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
 					else
 					{
-						printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+						printf("Invalid registr - %s, line is %ld\n", lines[i], count_strings + 1);
 						num_errors++;
 					}
 
@@ -181,19 +196,19 @@ void Assembler(char* input, char* output)
 							}
 							else 
 							{
-								printf("Error in [rax + num] - you forgot <<]>>. It's on line %d\n", count_strings + 1);
+								printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", count_strings + 1);
 								num_errors++;
 							}
 						}
 						else
 						{
-							printf("Error in [rax + num] - waiting number. It's on line %d\n", count_strings + 1);
+							printf("Error in [rax + num] - waiting number. It's on line %ld\n", count_strings + 1);
 							num_errors++;
 						}
 					}
 					else
 					{
-						printf("Error in [rax]. It's on line %d\n", count_strings + 1);
+						printf("Error in [rax]. It's on line %ld\n", count_strings + 1);
 						num_errors++;
 					}
 				}
@@ -210,20 +225,20 @@ void Assembler(char* input, char* output)
 					}
 					else
 					{
-						printf("Error in [num]. It's on line %d\n", count_strings + 1);
+						printf("Error in [num]. It's on line %ld\n", count_strings + 1);
 						num_errors++;
 					}
 				}
 				else
 				{
-					printf("Error in []. It's on line %d\n", count_strings + 1);
+					printf("Error in []. It's on line %ld\n", count_strings + 1);
 					num_errors++;
 				}
 			}
 /* 4 */		else
 			{
 				num_errors++;
-				printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
+				printf("Invalid push argument %ld - %s\n", count_strings + 1, lines[i]);
 
 				CMD.count_command--;
 			}
@@ -251,7 +266,7 @@ void Assembler(char* input, char* output)
 				else if ((*(ptr + 1) == 'p') && (*(ptr + 2) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
 				else
 				{
-					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+					printf("Invalid registr - %s, line is %ld\n", lines[i], count_strings + 1);
 					num_errors++;
 				}
 				CMD.count_command++;
@@ -270,7 +285,7 @@ void Assembler(char* input, char* output)
 					else if ((*(ptr + 2) == 'p') && (*(ptr + 3) == 'i')) CMD.command[CMD.count_command] = CMD_RPI;
 					else
 					{
-						printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
+						printf("Invalid registr - %s, line is %ld\n", lines[i], count_strings + 1);
 						num_errors++;
 					}
 
@@ -294,19 +309,19 @@ void Assembler(char* input, char* output)
 							}
 							else 
 							{
-								printf("Error in [rax + num] - you forgot <<]>>. It's on line %d\n", count_strings + 1);
+								printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", count_strings + 1);
 								num_errors++;
 							}
 						}
 						else
 						{
-							printf("Error in [rax + num] - waiting number. It's on line %d\n", count_strings + 1);
+							printf("Error in [rax + num] - waiting number. It's on line %ld\n", count_strings + 1);
 							num_errors++;
 						}
 					}
 					else
 					{
-						printf("Error in [rax]. It's on line %d\n", count_strings + 1);
+						printf("Error in [rax]. It's on line %ld\n", count_strings + 1);
 						num_errors++;
 					}
 				}
@@ -323,20 +338,20 @@ void Assembler(char* input, char* output)
 					}
 					else
 					{
-						printf("Error in [num]. It's on line %d\n", count_strings + 1);
+						printf("Error in [num]. It's on line %ld\n", count_strings + 1);
 						num_errors++;
 					}
 				}
 				else
 				{
-					printf("Error in []. It's on line %d\n", count_strings + 1);
+					printf("Error in []. It's on line %ld\n", count_strings + 1);
 					num_errors++;
 				}
 			}
 /* 4 */		else
 			{
 				num_errors++;
-				printf("Invalid pop argument %d - %s\n", count_strings + 1, lines[i]);
+				printf("Invalid pop argument %ld - %s\n", count_strings + 1, lines[i]);
 
 				CMD.count_command--;
 			}
@@ -356,6 +371,7 @@ void Assembler(char* input, char* output)
 		JUMPS("jae", JAE)
 		JUMPS("je", JE)  
 		JUMPS("jne", JNE)
+
 		else if (strcmp(lines[i], "") == 0);        
  		else if ((lines[i + 1][-2] == ':'));
 		else 
@@ -363,7 +379,7 @@ void Assembler(char* input, char* output)
 			if (strcmp(strings[count_strings], ""))
 			{
 				num_errors++;
-				printf("Unknown command on line %d - %s\n", count_strings + 1, lines[i]);
+				printf("Unknown command on line %ld - %s\n", count_strings + 1, lines[i]);
 			}
 		}
 		if (strings[count_strings] < lines[i]) count_strings++;
@@ -371,7 +387,7 @@ void Assembler(char* input, char* output)
 
 	if (num_errors != 0)
 	{
-		printf("You made %d syntax errors\n", num_errors);
+		printf("You made %ld syntax errors\n", num_errors);
 		free(assembliruemoe);
 		free(lines);
 		free(CMD.command);
@@ -399,7 +415,7 @@ int strcmp_my(char* line, char* tag)
 	return 0;
 }
 
-void FileReader(char* input, char* assembliruemoe, int size_of_input)
+void FileReader(char* input, char* assembliruemoe, size_t size_of_input)
 {
 	FILE* potok = fopen(input, "r+");
 
@@ -418,7 +434,7 @@ void FileReader(char* input, char* assembliruemoe, int size_of_input)
 	fclose(potok);
 }
 
-void BinaryWriter(char* output, int count_command, int count_lines, double* command)
+void BinaryWriter(char* output, size_t count_command, size_t count_lines, double* command)
 {
 	FILE* potok = fopen(output, "wb");
 
@@ -431,7 +447,7 @@ void BinaryWriter(char* output, int count_command, int count_lines, double* comm
 		perror(answer);
 		exit(2);
 	}
-	printf("<<< %d %d\n", count_command, count_lines);
+	printf("<<< %ld %ld\n", count_command, count_lines);
 	for (int i = 0; i < count_command; i++)
 	{
 		printf("%.0lf ", command[i]);
@@ -443,7 +459,7 @@ void BinaryWriter(char* output, int count_command, int count_lines, double* comm
 	fclose(potok);
 }
 
-unsigned long KnowFileSize(char* input)
+size_t KnowFileSize(char* input)
 {
 	struct stat buff;
 	stat(input, &buff);
@@ -451,107 +467,35 @@ unsigned long KnowFileSize(char* input)
 	return buff.st_size;
 }
 
+void CountInc(size_t* count_command, int* i, int cc_inc, int i_inc)
+{														
+	if (count_command != nullptr)	*count_command = *count_command + cc_inc;			
+	if (i != nullptr) 				*i = *i + i_inc;	
+}
 
-//================================================================================================
-// Code to fix:
+int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, size_t* count_strings)
+{
+	CMD->count_command++;																			
+	(*i)++;																								
 
-/*
-if (strcmp(lines[i], "push") == 0)
-		{
-			double argument = strtod(lines[i + 1], &ptr);
-			count_command++;
-			i++;
-
-			if (*ptr == '\0')
-			{
-				command[count_command - 1] = CMD_PUSH;
-				command[count_command] = argument;
-			}
-
-			else if (*(ptr) == 'r')
-			{
-				command[count_command - 1] = CMD_PUSH_R;
-					 if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
-				else if ((*(ptr + 1) == 'b') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RBX;
-				else if ((*(ptr + 1) == 'c') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RCX;
-				else if ((*(ptr + 1) == 'd') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RDX;
-				else if ((*(ptr + 1) == 's') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RSI;
-				else if ((*(ptr + 1) == 'p') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RPI;
-				else
-				{
-					printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
-					num_errors++;
-				}
-			}
-			else if (*(ptr) == '[') 
-			{
-				double argument = strtod(lines[i + 1], &ptr);
-				command[count_command + 1] = 0; // Register not specified           ????????
-				command[count_command + 1] = argument;
-
-				if (*(ptr + 1) == '+')
-				{
-					if (*(ptr + 3) == 'r')
-					{
-						command[count_command - 1] = CMD_PUSH_RAM;
-						command[count_command + 1] = argument;
-						if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
-						else if ((*(ptr + 4) == 'b') & (*(ptr + 5) == 'x') & (*(ptr + 6) == ']')) command[count_command] = CMD_RBX;
-						else if ((*(ptr + 4) == 'c') & (*(ptr + 5) == 'x') & (*(ptr + 6) == ']')) command[count_command] = CMD_RCX;
-						else if ((*(ptr + 4) == 'd') & (*(ptr + 5) == 'x') & (*(ptr + 6) == ']')) command[count_command] = CMD_RDX;
-						else if ((*(ptr + 4) == 's') & (*(ptr + 5) == 'i') & (*(ptr + 6) == ']')) command[count_command] = CMD_RSI;
-						else if ((*(ptr + 4) == 'p') & (*(ptr + 5) == 'i') & (*(ptr + 6) == ']')) command[count_command] = CMD_RPI;
-						else
-						{
-							printf("Invalid registr - %s, line is %d. Maybe you forget \"]\"\n", lines[i], count_strings + 1);
-							num_errors++;
-						}
-					}
-					else
-					{
-						num_errors++;
-						printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
-
-						count_command--;
-					}
-				}
-				else if (*(ptr) == 'r')
-				{
-					command[count_command - 1] = CMD_PUSH_RAM;
-					if ((*(ptr + 1) == 'a') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RAX;
-					else if ((*(ptr + 1) == 'b') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RBX;
-					else if ((*(ptr + 1) == 'c') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RCX;
-					else if ((*(ptr + 1) == 'd') & (*(ptr + 2) == 'x')) command[count_command] = CMD_RDX;
-					else if ((*(ptr + 1) == 's') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RSI;
-					else if ((*(ptr + 1) == 'p') & (*(ptr + 2) == 'i')) command[count_command] = CMD_RPI;
-					else
-					{
-						printf("Invalid registr - %s, line is %d\n", lines[i], count_strings + 1);
-						num_errors++;
-					}
-				}
-				else if (*(ptr) == ']')
-				{
-					command[count_command - 1] = CMD_PUSH_RAM;
-				}
-				else
-				{
-					num_errors++;
-					printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
-
-					count_command--;
-				}
-
-				printf("FIND\n");
-			}
-			else
-			{
-				num_errors++;
-				printf("Invalid push argument %d - %s\n", count_strings + 1, lines[i]);
-
-				count_command--;
-			}
-			count_command++;
-			count_command++;
-		}
-*/
+	int find = 0;																					
+																										
+	for (int j = 0; j < lbl->count_tags; j++)															
+	{		
+		//			  AWFUL CONSTRUCTION
+		if (strcmp_my((*(*(lines) + (*i))), lbl->tags[j]) == 0)														
+		{																								
+			CMD->command[CMD->count_command] = lbl->place[j];												
+			CMD->count_command++;																		
+			find++;																						
+																					
+			return 1;																						
+		}																								
+	}																								
+	if (find == 0)																					
+	{																								
+		printf("This tag - <%s> - is unknown. Error. Line is %ld\n", (*(*(lines) + (*i))), *count_strings + 1);	
+		num_errors++;																				
+	}
+	return 0;
+}
