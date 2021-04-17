@@ -4,9 +4,9 @@ void BinaryWriter(char* output, size_t count_command, size_t count_lines, double
 int strcmp_my(char* line, char* tag);
 
 void CountInc(size_t* count_command, int* i, int cc_inc, int i_inc);
-int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, size_t* count_strings);
-void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_t* count_strings);
-void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_t* count_strings);
+int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, class String* strs);
+void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs);
+void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs);
 
 #define COMMANDS(NAME, NUMBER, INUM)							\
 	if (strcmp(lines[i], NAME) == 0)							\
@@ -17,6 +17,7 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 #define ARIFMETICAL(NAME_LOW, NAME_HIGH)								\
 		else if (strcmp(lines[i], NAME_LOW) == 0)						\
 		{																\
+		printf("ARIFMETICAL\n");										\
 		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;				\
 		CountInc(&(CMD.count_command), &i, 1, 0);						\
 		continue;														\
@@ -25,8 +26,9 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 #define JUMPS(NAME_LOW, NAME_HIGH)																			\
 		else if (strcmp(lines[i], NAME_LOW) == 0)															\
 		{																									\
+		printf("JUMPS\n");																					\
 		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;													\
-		int brk = JumpHandler (&CMD, &lbl, &i, &num_errors, &lines, &count_strings);						\
+		int brk = JumpHandler (&CMD, &lbl, &i, &num_errors, &lines, &strs);									\
 		if (brk == 1) continue;																				\
 		}
 
@@ -42,14 +44,16 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 #define PUSH_HAND																							\
 	if (strcmp(lines[i], "push") == 0)																		\
 	{																										\
-		PushHandle(&CMD, &i, &num_errors, &lines, &count_strings);											\
+		printf("PUSH\n");																					\
+		PushHandle(&CMD, &i, &num_errors, &lines, &strs);													\
 		continue;																							\
 	}
 
 #define POP_HAND																							\
 	if (strcmp(lines[i], "pop") == 0)																		\
 	{																										\
-		PopHandle(&CMD, &i, &num_errors, &lines, &count_strings);											\
+		printf("POP\n");																					\
+		PopHandle(&CMD, &i, &num_errors, &lines, &strs);													\
 		continue;																							\
 	}
 
@@ -71,6 +75,7 @@ public:
 class Cmd
 {
 public:
+
 	double* command;
 	size_t count_command;
 

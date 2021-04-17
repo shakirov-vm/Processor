@@ -21,7 +21,7 @@
 // YOU MUST PUT EXACTLY ONE SEPARATOR BETWEEN PUSH AND ARGUMENT. IF IT'S NOT SO - UNKNOWN TEAM. If the register name is spelled incorrectly
 // - it will give an error with an incorrect register name. 
 
-/*class String
+class String
 {
 public:
 	char** strings;
@@ -51,7 +51,7 @@ String::~String()
 {
 	printf("FREE\n");
 	free(strings);
-}*/
+}
 
 void Assembler(char* input, char* output)    
 {
@@ -65,9 +65,8 @@ void Assembler(char* input, char* output)
 
 	FileReader(input, assembliruemoe, size_of_input);
 
-	//class String strs(size_of_input, &assembliruemoe);
-	printf("START\n");
-
+	class String strs(size_of_input, &assembliruemoe);
+/*
 //=================================================================		
 	char** strings = (char**) calloc(size_of_input, sizeof(char*));
 	size_t count_strings = 1;
@@ -81,7 +80,7 @@ void Assembler(char* input, char* output)
 		}
 	}
 //==================================================================
-
+*/
 	lines[0] = assembliruemoe;    
 	size_t count_lines = 1;
 
@@ -94,6 +93,11 @@ void Assembler(char* input, char* output)
 			assembliruemoe[i] = '\0';
 		}
 	}														
+
+	for (int i = 0; i < count_lines; i++)
+	{
+		printf("[%s]\n", lines[i]);
+	}
 
 	class Labels lbl(count_lines);
 
@@ -129,16 +133,16 @@ void Assembler(char* input, char* output)
 		}
 	}
 //=========================================================================================================================================
-	printf("SECOND TIME\n");
 	CMD.count_command = 0;
-	count_strings = 0;
+	strs.count_strings = 0;
 //=========================================================================================================================================
 	char* ptr;
 
 	for (int i = 0; i < count_lines; i++) 
 	{
-		printf("%ld - [%s]\n", CMD.count_command, lines[i]);
-
+		//printf("%ld - [%s]\n", CMD.count_command, lines[i]);
+		printf("BEFORE PUSH\n");
+		//printf("[%s] - {%p}\n", lines[i], lines + i);
 		PUSH_HAND
 		POP_HAND
 		ARIFMETICAL("add", ADD)
@@ -161,14 +165,13 @@ void Assembler(char* input, char* output)
  		else if ((lines[i + 1][-2] == ':'));
 		else 
 		{
-			if (strcmp(strings[count_strings], ""))
+			if (strcmp(strs.strings[strs.count_strings], ""))
 			{
 				num_errors++;
-				printf("Unknown command on line %ld - %s\n", count_strings + 1, lines[i]);
+				printf("Unknown command on line %ld - %s\n", strs.count_strings + 1, lines[i]);
 			}
 		}
-		if (strings[count_strings] < lines[i]) count_strings++;
-		printf("END OF CIRCLE\n");
+		if (strs.strings[strs.count_strings] < lines[i]) strs.count_strings++;
 	}
 
 	if (num_errors != 0)
@@ -244,9 +247,8 @@ void CountInc(size_t* count_command, int* i, int cc_inc, int i_inc)
 	if (i != nullptr) 				*i = *i + i_inc;	
 }
 
-int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, size_t* count_strings)
+int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, class String* strs)
 {
-	printf("JUMP ENTER\n");
 	CMD->count_command++;																			
 	(*i)++;																								
 
@@ -266,16 +268,14 @@ int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors
 	}																								
 	if (find == 0)																					
 	{																								
-		printf("This tag - <%s> - is unknown. Error. Line is %ld\n", (*(*(lines) + (*i))), *count_strings + 1);	
+		printf("This tag - <%s> - is unknown. Error. Line is %ld\n", (*(*(lines) + (*i))), strs->count_strings + 1);	
 		num_errors++;																				
 	}
 	return 0;
-	printf("JUMP OUT\n");
 }
 
-void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_t* count_strings)
+void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs)
 {
-	printf("PUSH ENTER\n");
 	char* ptr;
 	double argument = strtod(*(*(lines) + (*i) + 1), &ptr);
 	CMD->count_command++;
@@ -293,7 +293,7 @@ void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size
 		REG_FILL(1, 2)	
 		else
 		{
-			printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), *count_strings + 1);
+			printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
 			*num_errors++;
 		}
 		CMD->count_command++;
@@ -307,7 +307,7 @@ void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size
 			REG_FILL(2, 3)	
 			else
 			{
-				printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), *count_strings + 1);
+				printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
 				*num_errors++;
 			}
 
@@ -331,19 +331,19 @@ void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size
 					}
 					else 
 					{
-						printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", *count_strings + 1);
+						printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", strs->count_strings + 1);
 						*num_errors++;
 					}
 				}
 				else
 				{
-					printf("Error in [rax + num] - waiting number. It's on line %ld\n", *count_strings + 1);
+					printf("Error in [rax + num] - waiting number. It's on line %ld\n", strs->count_strings + 1);
 					*num_errors++;
 				}
 			}
 			else
 			{
-				printf("Error in [rax]. It's on line %ld\n", *count_strings + 1);
+				printf("Error in [rax]. It's on line %ld\n", strs->count_strings + 1);
 				*num_errors++;
 			}
 		}
@@ -360,27 +360,26 @@ void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size
 			}
 			else
 			{
-				printf("Error in [num]. It's on line %ld\n", *count_strings + 1);
+				printf("Error in [num]. It's on line %ld\n", strs->count_strings + 1);
 				*num_errors++;
 			}
 		}
 		else
 		{
-			printf("Error in []. It's on line %ld\n", *count_strings + 1);
+			printf("Error in []. It's on line %ld\n", strs->count_strings + 1);
 			*num_errors++;
 		}
 	}
 	else
 	{
 		*num_errors++;
-		printf("Invalid push argument %ld - %s\n", *count_strings + 1, *(*(lines) + (*i)));
+		printf("Invalid push argument %ld - %s\n", strs->count_strings + 1, *(*(lines) + (*i)));
 
 		CMD->count_command--;
 	}
-	printf("PUSH OUT\n");
 }
 
-void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_t* count_strings)
+void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs)
 {
 	char* ptr;
 	double argument = strtod(*(*(lines) + (*i) + 1), &ptr);
@@ -399,7 +398,7 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 		REG_FILL(1, 2)	
 		else
 		{
-			printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), *count_strings + 1);
+			printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
 			*num_errors++;
 		}
 		CMD->count_command++;
@@ -413,7 +412,7 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 			REG_FILL(2, 3)	
 			else
 			{
-				printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), *count_strings + 1);
+				printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
 				*num_errors++;
 			}
 
@@ -437,19 +436,19 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 					}
 					else 
 					{
-						printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", *count_strings + 1);
+						printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", strs->count_strings + 1);
 						*num_errors++;
 					}
 				}
 				else
 				{
-					printf("Error in [rax + num] - waiting number. It's on line %ld\n", *count_strings + 1);
+					printf("Error in [rax + num] - waiting number. It's on line %ld\n", strs->count_strings + 1);
 					*num_errors++;
 				}
 			}
 			else
 			{
-				printf("Error in [rax]. It's on line %ld\n", *count_strings + 1);
+				printf("Error in [rax]. It's on line %ld\n", strs->count_strings + 1);
 				*num_errors++;
 			}
 		}
@@ -466,20 +465,20 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, size_
 			}
 			else
 			{
-				printf("Error in [num]. It's on line %ld\n", *count_strings + 1);
+				printf("Error in [num]. It's on line %ld\n", strs->count_strings + 1);
 				*num_errors++;
 			}
 		}
 		else
 		{
-			printf("Error in []. It's on line %ld\n", *count_strings + 1);
+			printf("Error in []. It's on line %ld\n", strs->count_strings + 1);
 			*num_errors++;
 		}
 	}
 	else
 	{
 		*num_errors++;
-		printf("Invalid push argument %ld - %s\n", *count_strings + 1, *(*(lines) + (*i)));
+		printf("Invalid push argument %ld - %s\n", strs->count_strings + 1, *(*(lines) + (*i)));
 
 		CMD->count_command--;
 	}
