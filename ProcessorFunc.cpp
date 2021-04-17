@@ -1,17 +1,18 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
+#include <stdlib.h>
+/*
 #ifndef ENUM_H
 #define ENUM_H
 #include "Enum.h"
-#endif
+#endif*/
 /*
 #ifndef STACK_CONST_H    
 #define STACK_CONST_H  
 #include "StackConst.h"
-#endif */
-/*
+#endif 
+
 #if 1
 #define TYPE int
 #include "Stack.h"
@@ -24,7 +25,16 @@
 #undef TYPE
 #endif
 */
+/*
 #ifndef PROCESSOR_H    
 #define PROCESSOR_H
 #include "Processor.h"
 #endif
+*/
+
+size_t KnowSizeInput(char* input)
+{
+	struct stat buff;
+	stat(input, &buff);
+	return buff.st_size;
+}
