@@ -21,35 +21,22 @@
 // YOU MUST PUT EXACTLY ONE SEPARATOR BETWEEN PUSH AND ARGUMENT. IF IT'S NOT SO - UNKNOWN TEAM. If the register name is spelled incorrectly
 // - it will give an error with an incorrect register name. 
 
-class String
+size_t LinesFiller(char*** lines, char** assembliruemoe, size_t size_of_input)
 {
-public:
-	char** strings;
-	size_t count_strings;
+	**lines = *assembliruemoe;    
+	size_t count_lines = 1;
 
-	String(size_t size_of_input, char** assembliruemoe);
-	~String();
-	const String& operator= (const String& strs) = delete;
-	String(const String& strs) = delete;
-};
-
-String::String(size_t size_of_input, char** assembliruemoe)
-{
-	strings = (char**) calloc(size_of_input, sizeof(char*));
-	count_strings = 1;
-	strings[0] = *assembliruemoe;
-	for (int i = 0; i < size_of_input; i++)
+	for (int i = 0; i < size_of_input; i++) 
 	{
-		if ((*assembliruemoe)[i] == '\n')
+		if (isspace(*(*assembliruemoe + i)))	
 		{
-			strings[count_strings] = *assembliruemoe + i + 1;
-			count_strings++;
+            *(*lines + count_lines) = *assembliruemoe + i + 1;           
+			count_lines++;
+			*(*assembliruemoe + i) = '\0';
 		}
-	}
-}
-String::~String()
-{
-	free(strings);
+	}	
+
+	return count_lines; 
 }
 
 void Assembler(char* input, char* output)    
@@ -64,20 +51,9 @@ void Assembler(char* input, char* output)
 
 	FileReader(input, assembliruemoe, size_of_input);
 
-	class String strs(size_of_input, &assembliruemoe);
-	
-	lines[0] = assembliruemoe;    
-	size_t count_lines = 1;
+	class String strs (size_of_input, &assembliruemoe);
 
-	for (int i = 0; i < size_of_input; i++) 
-	{
-		if (isspace(assembliruemoe[i]))	
-		{
-			lines[count_lines] = assembliruemoe + i + 1;                               
-			count_lines++;
-			assembliruemoe[i] = '\0';
-		}
-	}														
+	size_t count_lines = LinesFiller(&lines, &assembliruemoe, size_of_input);
 
 	class Labels lbl(count_lines);
 
@@ -116,8 +92,6 @@ void Assembler(char* input, char* output)
 	CMD.count_command = 0;
 	strs.count_strings = 0;
 //=========================================================================================================================================
-	char* ptr;
-
 	for (int i = 0; i < count_lines; i++) 
 	{
 		PUSH_HAND
@@ -158,305 +132,10 @@ void Assembler(char* input, char* output)
 		free(lines);
 	}
 
-	BinaryWriter(output, CMD.count_command, count_lines, CMD.command);
+	CMD.BinaryWriter(output, count_lines);
 
 	assert(!num_errors);															// Return BACK
 
 	free(assembliruemoe);
 	free(lines);
-}
-
-void FileReader(char* input, char* assembliruemoe, size_t size_of_input)
-{
-	FILE* potok = fopen(input, "r+");
-
-	if (errno)
-	{
-		char answer[100];
-
-		sprintf(answer, "Assembler: Problem file: %s\n", input);
-
-		perror(answer);
-		exit(1);
-	}
-
-	fread(assembliruemoe, sizeof(char), size_of_input, potok);
-
-	fclose(potok);
-}
-
-void BinaryWriter(char* output, size_t count_command, size_t count_lines, double* command)
-{
-	FILE* potok = fopen(output, "wb");
-
-	if (errno)
-	{
-		char answer[100];
-
-		sprintf(answer, "Assembler: Problem file: %s\n", output);
-
-		perror(answer);
-		exit(2);
-	}
-	printf("<<< %ld %ld\n", count_command, count_lines);
-	for (int i = 0; i < count_command; i++)
-	{
-		printf("%.0lf ", command[i]);
-	}
-	printf("\n");
-
-	int entered = fwrite(command, sizeof(double), count_command, potok);
-
-	fclose(potok);
-}
-
-size_t KnowFileSize(char* input)
-{
-	struct stat buff;
-	stat(input, &buff);
-
-	return buff.st_size;
-}
-
-void CountInc(size_t* count_command, int* i, int cc_inc, int i_inc)
-{														
-	if (count_command != nullptr)	*count_command = *count_command + cc_inc;			
-	if (i != nullptr) 				*i = *i + i_inc;	
-}
-
-int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, class String* strs)
-{
-	CMD->count_command++;																			
-	(*i)++;																								
-
-	int find = 0;																					
-																										
-	for (int j = 0; j < lbl->count_tags; j++)															
-	{		
-		//			  AWFUL CONSTRUCTION
-		if (strcmp_my(*(*(lines) + (*i)), lbl->tags[j]) == 0)														
-		{																								
-			CMD->command[CMD->count_command] = lbl->place[j];												
-			CMD->count_command++;																		
-			find++;																						
-																					
-			return 1;																						
-		}																								
-	}																								
-	if (find == 0)																					
-	{																								
-		printf("This tag - <%s> - is unknown. Error. Line is %ld\n", (*(*(lines) + (*i))), strs->count_strings + 1);	
-		num_errors++;																				
-	}
-	return 0;
-}
-
-void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs)
-{
-	char* ptr;
-	double argument = strtod(*(*(lines) + (*i) + 1), &ptr);
-	CMD->count_command++;
-	(*i)++;
-
-	if (*ptr == '\0')
-	{
-		CMD->command[CMD->count_command - 1] = CMD_PUSH;
-		CMD->command[CMD->count_command] = argument;
-		CMD->count_command++;
-	}
-	else if (*(ptr) == 'r')
-	{
-		CMD->command[CMD->count_command - 1] = CMD_PUSH_R;
-		REG_FILL(1, 2)	
-		else
-		{
-			printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
-			*num_errors++;
-		}
-		CMD->count_command++;
-	}
-	else if (*(ptr) == '[') 
-	{
-		if (*(ptr + 1) == 'r')
-		{
-			CMD->command[CMD->count_command - 1] = CMD_PUSH_RAM;
-
-			REG_FILL(2, 3)	
-			else
-			{
-				printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
-				*num_errors++;
-			}
-
-			if (*(ptr + 4) == ']')
-			{
-				CMD->command[CMD->count_command - 1] = CMD_PUSH_RAM;
-				CMD->command[CMD->count_command + 1] = 0;
-				CMD->count_command = CMD->count_command + 2;                                                   
-			}
-			else if (*(ptr + 5) == '+')
-			{
-				if (isdigit(*(ptr + 7)))
-				{
-					argument = strtod (ptr + 7, &ptr);
-
-					if (*(ptr) == ']')
-					{
-						CMD->command[CMD->count_command - 1] = CMD_PUSH_RAM;
-						CMD->command[CMD->count_command + 1] = argument;
-						CMD->count_command = CMD->count_command + 2;
-					}
-					else 
-					{
-						printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", strs->count_strings + 1);
-						*num_errors++;
-					}
-				}
-				else
-				{
-					printf("Error in [rax + num] - waiting number. It's on line %ld\n", strs->count_strings + 1);
-					*num_errors++;
-				}
-			}
-			else
-			{
-				printf("Error in [rax]. It's on line %ld\n", strs->count_strings + 1);
-				*num_errors++;
-			}
-		}
-		else if (isdigit(*(ptr + 1)))	
-		{	
-			argument = strtod(ptr + 1, &ptr);
-
-			if (*(ptr) == ']')
-			{
-				CMD->command[CMD->count_command - 1] = CMD_PUSH_RAM;
-				CMD->command[CMD->count_command - 0] = CMD_NOT_REG;
-				CMD->command[CMD->count_command + 1] = argument;
-				CMD->count_command = CMD->count_command + 2;
-			}
-			else
-			{
-				printf("Error in [num]. It's on line %ld\n", strs->count_strings + 1);
-				*num_errors++;
-			}
-		}
-		else
-		{
-			printf("Error in []. It's on line %ld\n", strs->count_strings + 1);
-			*num_errors++;
-		}
-	}
-	else
-	{
-		*num_errors++;
-		printf("Invalid push argument %ld - %s\n", strs->count_strings + 1, *(*(lines) + (*i)));
-
-		CMD->count_command--;
-	}
-}
-
-void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs)
-{
-	char* ptr;
-	double argument = strtod(*(*(lines) + (*i) + 1), &ptr);
-	CMD->count_command++;
-	(*i)++;
-
-	if (*ptr == '\0')
-	{
-		CMD->command[CMD->count_command - 1] = CMD_POP;
-		CMD->command[CMD->count_command] = argument;
-		CMD->count_command++;
-	}
-	else if (*(ptr) == 'r')
-	{
-		CMD->command[CMD->count_command - 1] = CMD_POP_R;
-		REG_FILL(1, 2)	
-		else
-		{
-			printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
-			*num_errors++;
-		}
-		CMD->count_command++;
-	}
-	else if (*(ptr) == '[') 
-	{
-		if (*(ptr + 1) == 'r')
-		{
-			CMD->command[CMD->count_command - 1] = CMD_POP_RAM;
-
-			REG_FILL(2, 3)	
-			else
-			{
-				printf("Invalid registr - %s, line is %ld\n", *(*(lines) + (*i)), strs->count_strings + 1);
-				*num_errors++;
-			}
-
-			if (*(ptr + 4) == ']')
-			{
-				CMD->command[CMD->count_command - 1] = CMD_POP_RAM;
-				CMD->command[CMD->count_command + 1] = 0;
-				CMD->count_command = CMD->count_command + 2;                                                   
-			}
-			else if (*(ptr + 5) == '+')
-			{
-				if (isdigit(*(ptr + 7)))
-				{
-					argument = strtod (ptr + 7, &ptr);
-
-					if (*(ptr) == ']')
-					{
-						CMD->command[CMD->count_command - 1] = CMD_POP_RAM;
-						CMD->command[CMD->count_command + 1] = argument;
-						CMD->count_command = CMD->count_command + 2;
-					}
-					else 
-					{
-						printf("Error in [rax + num] - you forgot <<]>>. It's on line %ld\n", strs->count_strings + 1);
-						*num_errors++;
-					}
-				}
-				else
-				{
-					printf("Error in [rax + num] - waiting number. It's on line %ld\n", strs->count_strings + 1);
-					*num_errors++;
-				}
-			}
-			else
-			{
-				printf("Error in [rax]. It's on line %ld\n", strs->count_strings + 1);
-				*num_errors++;
-			}
-		}
-		else if (isdigit(*(ptr + 1)))	
-		{	
-			argument = strtod(ptr + 1, &ptr);
-
-			if (*(ptr) == ']')
-			{
-				CMD->command[CMD->count_command - 1] = CMD_POP_RAM;
-				CMD->command[CMD->count_command - 0] = CMD_NOT_REG;
-				CMD->command[CMD->count_command + 1] = argument;
-				CMD->count_command = CMD->count_command + 2;
-			}
-			else
-			{
-				printf("Error in [num]. It's on line %ld\n", strs->count_strings + 1);
-				*num_errors++;
-			}
-		}
-		else
-		{
-			printf("Error in []. It's on line %ld\n", strs->count_strings + 1);
-			*num_errors++;
-		}
-	}
-	else
-	{
-		*num_errors++;
-		printf("Invalid push argument %ld - %s\n", strs->count_strings + 1, *(*(lines) + (*i)));
-
-		CMD->count_command--;
-	}
 }
