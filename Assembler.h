@@ -17,7 +17,6 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class
 #define ARIFMETICAL(NAME_LOW, NAME_HIGH)								\
 		else if (strcmp(lines[i], NAME_LOW) == 0)						\
 		{																\
-		printf("ARIFMETICAL\n");										\
 		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;				\
 		CountInc(&(CMD.count_command), &i, 1, 0);						\
 		continue;														\
@@ -26,7 +25,6 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class
 #define JUMPS(NAME_LOW, NAME_HIGH)																			\
 		else if (strcmp(lines[i], NAME_LOW) == 0)															\
 		{																									\
-		printf("JUMPS\n");																					\
 		CMD.command[CMD.count_command] = CMD##_##NAME_HIGH;													\
 		int brk = JumpHandler (&CMD, &lbl, &i, &num_errors, &lines, &strs);									\
 		if (brk == 1) continue;																				\
@@ -44,7 +42,6 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class
 #define PUSH_HAND																							\
 	if (strcmp(lines[i], "push") == 0)																		\
 	{																										\
-		printf("PUSH\n");																					\
 		PushHandle(&CMD, &i, &num_errors, &lines, &strs);													\
 		continue;																							\
 	}
@@ -52,7 +49,6 @@ void PopHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class
 #define POP_HAND																							\
 	if (strcmp(lines[i], "pop") == 0)																		\
 	{																										\
-		printf("POP\n");																					\
 		PopHandle(&CMD, &i, &num_errors, &lines, &strs);													\
 		continue;																							\
 	}

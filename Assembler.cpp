@@ -35,8 +35,8 @@ public:
 
 String::String(size_t size_of_input, char** assembliruemoe)
 {
-	char** strings = (char**) calloc(size_of_input, sizeof(char*));
-	size_t count_strings = 1;
+	strings = (char**) calloc(size_of_input, sizeof(char*));
+	count_strings = 1;
 	strings[0] = *assembliruemoe;
 	for (int i = 0; i < size_of_input; i++)
 	{
@@ -49,7 +49,6 @@ String::String(size_t size_of_input, char** assembliruemoe)
 }
 String::~String()
 {
-	printf("FREE\n");
 	free(strings);
 }
 
@@ -66,21 +65,7 @@ void Assembler(char* input, char* output)
 	FileReader(input, assembliruemoe, size_of_input);
 
 	class String strs(size_of_input, &assembliruemoe);
-/*
-//=================================================================		
-	char** strings = (char**) calloc(size_of_input, sizeof(char*));
-	size_t count_strings = 1;
-	strings[0] = assembliruemoe;
-	for (int i = 0; i < size_of_input; i++)
-	{
-		if (assembliruemoe[i] == '\n')
-		{
-			strings[count_strings] = assembliruemoe + i + 1;
-			count_strings++;
-		}
-	}
-//==================================================================
-*/
+	
 	lines[0] = assembliruemoe;    
 	size_t count_lines = 1;
 
@@ -93,11 +78,6 @@ void Assembler(char* input, char* output)
 			assembliruemoe[i] = '\0';
 		}
 	}														
-
-	for (int i = 0; i < count_lines; i++)
-	{
-		printf("[%s]\n", lines[i]);
-	}
 
 	class Labels lbl(count_lines);
 
@@ -140,9 +120,6 @@ void Assembler(char* input, char* output)
 
 	for (int i = 0; i < count_lines; i++) 
 	{
-		//printf("%ld - [%s]\n", CMD.count_command, lines[i]);
-		printf("BEFORE PUSH\n");
-		//printf("[%s] - {%p}\n", lines[i], lines + i);
 		PUSH_HAND
 		POP_HAND
 		ARIFMETICAL("add", ADD)
