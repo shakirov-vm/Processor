@@ -1,0 +1,36 @@
+push 1
+pop rsi
+push 1
+pop rpi
+
+push 2
+push 8
+sub
+pop rcx
+
+fib:
+
+push rsi
+pop rdx
+
+push rpi
+push rsi
+add
+pop rsi
+
+push rdx
+pop rpi
+
+push 0
+pop rbx
+
+push 1
+push rcx
+sub
+pop rcx
+
+jne fib
+
+push rsi
+out
+end
