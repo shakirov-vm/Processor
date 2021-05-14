@@ -1,59 +1,11 @@
-﻿#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-
-#ifndef ENUM_H
-#define ENUM_H
-#include "Enum.h"
-#endif
-
-#ifndef STACK_CONST_H    
-#define STACK_CONST_H  
-#include "StackConst.h"
-#endif 
-
-#if 1
-#define TYPE int
-#include "Stack.h"
-#undef TYPE
-#endif                                                        
-
-#if 1
-#define TYPE double
-#include "Stack.h"
-#undef TYPE
-#endif
-
+﻿
 #ifndef PROCESSOR_H    
 #define PROCESSOR_H
 #include "Processor.h"
 #endif 
 
-#define rax registr[0]
-#define rbx registr[1]
-#define rcx registr[2]
-#define rdx registr[3]
-#define rsi registr[4]
-#define rpi registr[5]
-
-#define mode 1
-
-Proc::Proc(size_t size_of_input)
-{
-	IP = 0;
-	registr = (double*)calloc(NUM_OF_REG, sizeof(double));
-	commands = (double*)calloc(size_of_input, sizeof(double));
-	RAM  = (double*)calloc(1024, sizeof(double));
-	VRAM = (char*)calloc(1024, sizeof(char));
-}
-Proc::~Proc()
-{
-	free(registr);
-	free(commands);
-	free(RAM);
-	free(VRAM);
-}
+// OUT WORK WITH RAX. ARGUMENT FROM STACK GO TO RAX
+// SQRT TOO
 
 void Processor(char* input)
 {
@@ -81,17 +33,19 @@ void Proc::CPUHandle()
 			PROC_OTHER(OUT)
 			PROC_OTHER(CALL)
 			PROC_OTHER(RET)
-			PROC_OTHER(JMP)		
+			PROC_OTHER(JMP)
+			PROC_OTHER(IN)	
+			PROC_OTHER(SQRT)	
 			PROC_ARIFM(ADD, +)    
 			PROC_ARIFM(MUL, *)
 			PROC_ARIFM(DIV, /)
 			PROC_ARIFM(SUB, -)
-			PROC_JUMP(JB, <)
-			PROC_JUMP(JBE, <= )
-			PROC_JUMP(JA, > )
-			PROC_JUMP(JAE, >= )
-			PROC_JUMP(JE, == )
-			PROC_JUMP(JNE, != )
+			PROC_JUMPS(JB, <)
+			PROC_JUMPS(JBE, <= )
+			PROC_JUMPS(JA, > )
+			PROC_JUMPS(JAE, >= )
+			PROC_JUMPS(JE, == )
+			PROC_JUMPS(JNE, != )
 			case CMD_END:
 			{
 				this->CPU_END();
@@ -99,6 +53,47 @@ void Proc::CPUHandle()
 			}
 		}
 	}
+}
+
+
+int Proc::CommandFiller(char* input, int size_of_input)
+{
+	FILE* potok = fopen(input, "rb");
+
+	if (errno)
+	{
+		char answer[100];
+
+		sprintf(answer, "Processor: Problem file: %s\n", input);
+
+		perror(answer);
+		exit(1);
+	}
+
+	int read_out = fread(commands, sizeof(double), size_of_input, potok);
+
+	printf("\n");
+	
+	fclose(potok);
+
+	return read_out;
+}
+
+Proc::Proc(size_t size_of_input)
+{
+	IP = 0;
+	registr = (double*)calloc(NUM_OF_REG, sizeof(double));
+	commands = (double*)calloc(size_of_input, sizeof(double));
+	RAM  = (double*)calloc(1024, sizeof(double));
+	VRAM = (char*)calloc(1024, sizeof(char));
+}
+
+Proc::~Proc()
+{
+	free(registr);
+	free(commands);
+	free(RAM);
+	free(VRAM);
 }
 
 void Proc::CPU_PUSH_RAM()
@@ -131,6 +126,7 @@ void Proc::CPU_PUSH_RAM()
 		printf("This adress is invalid - %ld\n", adress);
 	}
 }
+
 void Proc::CPU_PUSH_R()
 {
 	stk.Push(registr[(int)commands[IP + 1] - CMD_RAX]);
@@ -163,10 +159,34 @@ void Proc::CPU_OUT()
 {
 	IP++;
 
+	double a = stk.Pop();
+
+	printf("out %lf\n", a);   
+
+}
+void Proc::CPU_IN()
+{
+	IP++;
+
+	double arg = 0;
+
+	int value = 0;
+ 
+	while (value != 1)
+	{
+		value = scanf("%lf", &arg);
+	}
+	stk.Push(arg);
+}
+void Proc::CPU_SQRT()
+{
+	IP++;
+
 	rax = stk.Pop();
 
-	printf("out %.0lf\n", rax);   
+	rax = sqrt(rax);
 
+	stk.Push(rax);
 }
 void Proc::CPU_CALL()
 {
@@ -197,32 +217,6 @@ void Proc::CPU_END()
 	stk.DUMP();
 	printf("end\n");
 }
-
-
-
-
-int Proc::CommandFiller(char* input, int size_of_input)
-{
-	FILE* potok = fopen(input, "rb");
-
-	if (errno)
-	{
-		char answer[100];
-
-		sprintf(answer, "Processor: Problem file: %s\n", input);
-
-		perror(answer);
-		exit(1);
-	}
-
-	int read_out = fread(commands, sizeof(double), size_of_input, potok);
-
-	printf("\n");
-	
-	fclose(potok);
-
-	return read_out;
-}
 void Proc::PrintRAM()
 {
 	for (int i = 0; i < 1024; i++)
@@ -239,3 +233,11 @@ void Proc::PrintVRAM()
 	}
 	printf("\n");
 }
+
+size_t KnowSizeInput(char* input)
+{
+	struct stat buff;
+	stat (input, &buff);
+	return buff.st_size;
+}
+

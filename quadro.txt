@@ -1,0 +1,155 @@
+in
+in
+in
+
+call POP_ALL
+
+call PUSH_ALL
+call PUSH_ALL
+
+push rax
+pop rbx
+push 0
+pop rcx
+je LINEAR
+
+call POP_ALL
+
+push 4
+push rax
+push rcx
+mul
+mul
+push rbx
+push rbx
+mul
+sub
+pop rdx
+
+call POP_ALL
+call PUSH_ALL
+
+push rdx
+pop rbx
+push 0
+pop rcx
+
+je ONE
+ja TWO
+
+push 0
+push 0
+push 0
+out
+out
+out
+end
+
+ONE:
+
+call POP_ALL
+
+push 2
+push rax
+mul
+push rbx
+div
+push -1
+mul
+out
+
+end
+
+TWO:
+
+call POP_ALL
+
+call PUSH_ALL
+push rdx
+sqrt
+pop rdx
+call POP_ALL
+
+push 2
+push rax
+mul
+push rdx
+push rbx
+push -1
+mul
+add
+div
+
+out
+
+push 2
+push rax
+mul
+push rdx
+
+push rbx
+push -1
+mul
+sub
+div
+out
+
+end
+
+LINEAR:
+
+call POP_ALL
+call PUSH_ALL
+
+push 0
+pop rcx
+je NOX
+
+call POP_ALL
+
+push rbx
+push rcx
+div
+push -1
+mul
+out
+
+end
+
+NOX:
+
+call POP_ALL
+
+push 0
+pop rbx
+
+je INF
+
+push 0
+push 0
+push 0
+out
+out
+out
+end
+
+INF:
+
+push 0
+push 0
+out
+out
+end
+
+PUSH_ALL:
+push rax
+push rbx
+push rcx
+ret
+
+POP_ALL:
+pop rcx
+pop rbx
+pop rax
+ret
+

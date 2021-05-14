@@ -1,6 +1,7 @@
 size_t KnowFileSize(char* input);
 void FileReader(char* input, char* assembliruemoe, size_t size_of_input);
 int strcmp_my(char* line, char* tag);
+size_t LinesFiller(char*** lines, char** assembliruemoe, size_t size_of_input);
 
 int JumpHandler (struct Cmd* CMD, struct Labels* lbl, int* i, size_t* num_errors, char*** lines, class String* strs);
 void PushHandle(struct Cmd* CMD, int* i, size_t* num_errors, char*** lines, class String* strs);
@@ -76,7 +77,7 @@ public:
 	Cmd(size_t size_of_input);
 	~Cmd();
 	const Cmd& operator= (const Cmd& CMD) = delete;
-	Cmd(const Cmd& strs) = delete;
+	Cmd(const Cmd& CMD) = delete;
 	void BinaryWriter(char* output, size_t count_lines);
 	void CountInc(int* i, int cc_inc, int i_inc);
 	int JumpHandler (class Labels* lbl, int* i, size_t* num_errors, char*** lines, class String* strs);

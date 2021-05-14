@@ -21,24 +21,6 @@
 // YOU MUST PUT EXACTLY ONE SEPARATOR BETWEEN PUSH AND ARGUMENT. IF IT'S NOT SO - UNKNOWN TEAM. If the register name is spelled incorrectly
 // - it will give an error with an incorrect register name. 
 
-size_t LinesFiller(char*** lines, char** assembliruemoe, size_t size_of_input)
-{
-	**lines = *assembliruemoe;    
-	size_t count_lines = 1;
-
-	for (int i = 0; i < size_of_input; i++) 
-	{
-		if (isspace(*(*assembliruemoe + i)))	
-		{
-            *(*lines + count_lines) = *assembliruemoe + i + 1;           
-			count_lines++;
-			*(*assembliruemoe + i) = '\0';
-		}
-	}	
-
-	return count_lines; 
-}
-
 void Assembler(char* input, char* output)    
 {
 	size_t size_of_input = KnowFileSize(input);
@@ -67,6 +49,7 @@ void Assembler(char* input, char* output)
 		COMMANDS("mul", 1, 0)
 		COMMANDS("sub", 1, 0)
 		COMMANDS("div", 1, 0)
+		COMMANDS("sqrt", 1, 0)
 		COMMANDS("out", 1, 0)
 		COMMANDS("end", 1, 0)
 		COMMANDS("ret", 1, 0)
@@ -78,6 +61,7 @@ void Assembler(char* input, char* output)
 		COMMANDS("jae", 2, 0)
 		COMMANDS("je", 2, 0)
 		COMMANDS("jne", 2, 0)
+		COMMANDS("in", 1, 0)
 		if (i != count_lines - 1)
 		{
 			if ((lines[i + 1][-2] == ':'))
@@ -100,9 +84,11 @@ void Assembler(char* input, char* output)
 		ARIFMETICAL("mul", MUL)
 		ARIFMETICAL("sub", SUB)
 		ARIFMETICAL("div", DIV)
+		ARIFMETICAL("sqrt", SQRT)
 		ARIFMETICAL("out", OUT)
 		ARIFMETICAL("end", END)
 		ARIFMETICAL("ret", RET)
+		ARIFMETICAL("in", IN)
 		JUMPS("jmp", JMP)
 		JUMPS("call", CALL)
 		JUMPS("jb", JB)

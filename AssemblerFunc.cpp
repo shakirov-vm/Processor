@@ -51,12 +51,12 @@ void Cmd::BinaryWriter(char* output, size_t count_lines)
 		perror(answer);
 		exit(2);
 	}
-	printf("<<< %ld %ld\n", count_command, count_lines);
+	/*printf("<<< %ld %ld\n", count_command, count_lines);
 	for (int i = 0; i < count_command; i++)
 	{
 		printf("%.0lf ", command[i]);
 	}
-	printf("\n");
+	printf("\n");*/
 
 	int entered = fwrite(command, sizeof(double), count_command, potok);
 
@@ -151,4 +151,22 @@ void FileReader(char* input, char* assembliruemoe, size_t size_of_input)
 	fread(assembliruemoe, sizeof(char), size_of_input, potok);
 
 	fclose(potok);
+}
+
+size_t LinesFiller(char*** lines, char** assembliruemoe, size_t size_of_input)
+{
+	**lines = *assembliruemoe;    
+	size_t count_lines = 1;
+
+	for (int i = 0; i < size_of_input; i++) 
+	{
+		if (isspace(*(*assembliruemoe + i)))	
+		{
+            *(*lines + count_lines) = *assembliruemoe + i + 1;           
+			count_lines++;
+			*(*assembliruemoe + i) = '\0';
+		}
+	}	
+
+	return count_lines; 
 }

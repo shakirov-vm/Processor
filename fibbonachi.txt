@@ -3,8 +3,8 @@ pop rsi
 push 1
 pop rpi
 
-push 2
-push 8
+push 3
+in
 sub
 pop rcx
 

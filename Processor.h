@@ -1,3 +1,40 @@
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#ifndef STACK_CONST_H    
+#define STACK_CONST_H  
+#include "StackConst.h"
+#endif 
+
+#ifndef ENUM_H
+#define ENUM_H
+#include "Enum.h"
+#endif
+
+#if 1
+#define TYPE int
+#include "Stack.h"
+#undef TYPE
+#endif                                                        
+
+#if 1
+#define TYPE double
+#include "Stack.h"
+#undef TYPE
+#endif
+
+#define rax registr[0]
+#define rbx registr[1]
+#define rcx registr[2]
+#define rdx registr[3]
+#define rsi registr[4]
+#define rpi registr[5]
+
+#define mode 0
 
 class Proc
 {
@@ -25,9 +62,11 @@ public:
 	void CPU_PUSH();
 	void CPU_OUT();
 	void CPU_CALL();
+	void CPU_SQRT();
 	void CPU_RET();
 	void CPU_JMP();
 	void CPU_END();
+	void CPU_IN();
 };
 
 size_t KnowSizeInput(char* input);
@@ -39,18 +78,18 @@ size_t KnowSizeInput(char* input);
 				{																	\
 					IP++;															\
 																					\
-					rax = stk.Pop();												\
-					rbx = stk.Pop();												\
+					double a = stk.Pop();											\
+					double b = stk.Pop();											\
 																					\
 																					\
-					rax = rax ACTION rbx;											\
+					a = a ACTION b;													\
 																					\
-					stk.Push(rax);													\
+					stk.Push(a);													\
 																					\
 					break;															\
 				}
  
-#define PROC_JUMP(NAME, ACTION)														\
+#define PROC_JUMPS(NAME, ACTION)													\
 			case CMD##_##NAME:														\
 			{																		\
 				if (rbx ACTION rcx)	IP = commands[IP + 1];							\

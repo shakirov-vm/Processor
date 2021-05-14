@@ -37,7 +37,7 @@ public:
 	void OK();
 	void DUMP();
 	void recalloc(int elements, int Size);
-	unsigned long long CountHash(char* str);
+	unsigned long long CountHash();
 	~TEMPLATE(Stack, TYPE)();
 };
 // Default constructor
@@ -57,10 +57,11 @@ TEMPLATE(Stack, TYPE)::TEMPLATE(Stack, TYPE)()
 	canary_t* second_canary = (canary_t*)(data + capacity);
 	*(second_canary) = POISON_can;
 
-	hash = CountHash((char*)data);
 	size = 0;
 	left_canary = POISON_can;
 	right_canary = POISON_can;
+
+	hash = CountHash();
 
 	OK();
 }
@@ -86,7 +87,7 @@ TEMPLATE(Stack, TYPE)::TEMPLATE(Stack, TYPE)(const TEMPLATE(Stack, TYPE)& stk)
 	canary_t* second_canary = (canary_t*)(data + capacity);
 	*(second_canary) = POISON_can;
 
-	hash = CountHash((char*)data);
+	hash = CountHash();
 
 	OK();
 
@@ -114,7 +115,7 @@ TEMPLATE(Stack, TYPE)& TEMPLATE(Stack, TYPE):: operator= (const TEMPLATE(Stack, 
 	canary_t* second_canary = (canary_t*)(data + capacity);
 	*(second_canary) = POISON_can;
 
-	hash = CountHash((char*)data);
+	hash = CountHash();
 
 	OK();
 
@@ -145,7 +146,7 @@ void TEMPLATE(Stack, TYPE)::Push(TYPE num)
 	}
 	*(data + size) = num;
 	size++;
-	hash = CountHash((char*)data);
+	hash = CountHash();
 
 	DUMP();
 
@@ -160,7 +161,7 @@ TYPE TEMPLATE(Stack, TYPE)::Pop()
 	TYPE returned = *(data + size);
 	*(data + size) = TEMPLATE(POISON, TYPE);
 
-	hash = CountHash((char*)data);
+	hash = CountHash();
 
 	OK();
 
@@ -221,7 +222,7 @@ void TEMPLATE(Stack, TYPE)::recalloc(int elements, int Size)
 		data[i] = 0;
 	}
 
-	hash = CountHash((char*)data);
+	hash = CountHash();
 
 	OK();
 }
@@ -246,31 +247,31 @@ void TEMPLATE(Stack, TYPE)::OK()
 	{
 		error = STACK_NPTR;
 		printf("!! data is nullptr !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_NPTR);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_NPTR);
 	}
 	if ((size < 0) || (capacity < 0))
 	{
 		error = STACK_FEWS;
 		printf("!! INDEX OUT OF RANGE !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_FEWS);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_FEWS);
 	}
 	if (size > capacity)
 	{
 		error = STACK_OVER;
 		printf("!! FULL !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_OVER);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_OVER);
 	}
 	if (left_canary != POISON_can)
 	{
 		error = STACK_LCS;
 		printf("STRUCT: !! Left dead !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_LCS);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_LCS);
 	}
 	if (right_canary != POISON_can)
 	{
 		error = STACK_RCS;
 		printf("STRUCT: !! Right dead !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_RCS);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_RCS);
 	}
 
 	assert(data);
@@ -279,19 +280,19 @@ void TEMPLATE(Stack, TYPE)::OK()
 	{
 		error = STACK_LCD;
 		printf("DATA: !! left dead !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_LCD);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_LCD);
 	}
 	if (*(canary_t*)(data + capacity) != POISON_can)
 	{
 		error = STACK_RCD;
 		printf("DATA: !! right dead !!\n");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_RCD);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_RCD);
 	}
-	if (hash != CountHash((char*)data))
+	if (hash != CountHash())
 	{
 		error = STACK_HASH;
 		printf("Hash isn't true");
-		fprintf(potok, "ERRORS Code - <%d>", STACK_HASH);
+		fprintf(potok, "ERRORS Code - <%d>\n", STACK_HASH);
 	}
 	if (error != 0)
 	{
@@ -301,19 +302,17 @@ void TEMPLATE(Stack, TYPE)::OK()
 	fclose(potok);
 }
 // Add info about the stack itself
-unsigned long long TEMPLATE(Stack, TYPE)::CountHash(char* string) // DONT WORK!
+unsigned long long TEMPLATE(Stack, TYPE)::CountHash()
 {
-	int hash_sum = 0;
-	/*
-	for (int i = 0; i < size * sizeof(TYPE); i++)
+	unsigned long long hash_sum = 0;
+
+	for (size_t i = 0; i < capacity; i++)
 	{
-		// printf("%s ", string + i);
-		//hash_sum = hash_sum + (unsigned long long) * (string + i);
-		hash_sum = (hash_sum << 1) | (hash_sum >> 31);
+		hash_sum = hash_sum ^ (unsigned long long)*(data + i);
+		hash_sum = hash_sum << 1; 
 	}
 
-	hash_sum = hash_sum + capacity;
-	hash_sum = hash_sum * size;
-	*/
+	hash_sum = hash_sum ^ (capacity | size);
+	
 	return hash_sum;
 }

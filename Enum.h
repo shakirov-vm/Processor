@@ -12,6 +12,8 @@ enum COMMANDS
 	CMD_MUL  = 5,
 	CMD_DIV  = 6,
 	CMD_OUT  = 7,
+	CMD_SQRT = 8,
+	CMD_IN   = 100,
 
 	CMD_END  = 10,
 	CMD_RET  = 20, 
